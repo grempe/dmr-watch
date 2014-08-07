@@ -13,7 +13,7 @@ defmodule DmrWatch.Mixfile do
   def application do
     [
       mod: { DmrWatch, [] },
-      applications: [:phoenix]
+      applications: [:phoenix, :httpoison]
     ]
   end
 
@@ -25,7 +25,12 @@ defmodule DmrWatch.Mixfile do
   defp deps do
     [
       {:phoenix, github: "phoenixframework/phoenix"},
-      {:cowboy, "~> 1.0.0"}
+      {:cowboy, "~> 1.0.0"},
+      {:hackney, github: "benoitc/hackney"},
+      {:httpoison, "~> 0.3.1"},
+      {:timex, "~> 0.11.0"},
+      {:socket, "~> 0.2.7"},
+      {:apex, "~> 0.3.0"}
     ]
   end
 end
