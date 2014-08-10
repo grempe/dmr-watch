@@ -36,6 +36,12 @@ defmodule Netwatch do
       rssi_in_dbm
       site_name
       loss_percentage
+
+      time_peer_radio_hash_id : A hash Integer calculated from String concatenation of the
+                                start_time, peer_id, and radio_id fields.  This hash is
+                                used to detect duplicates (there are many on each API response).
+                                A certain radio, transmitting through a certain peer at a certain
+                                time should be enough to detect any duplicate.
   """
 
   defstruct start_time: "",
@@ -52,7 +58,8 @@ defmodule Netwatch do
             bridge_group_name: "",
             rssi_in_dbm: 0.0,
             site_name: "",
-            loss_percentage: 0.0
+            loss_percentage: 0.0,
+            time_peer_radio_hash_id: nil
 
   @user_agent [ {"User-agent", "Elixir DmrWatch"} ]
 
@@ -64,7 +71,6 @@ defmodule Netwatch do
 
   def fetch_every(frequency_in_ms \\ 1000) do
     import :timer, only: [ sleep: 1 ]
-    IO.puts "Fetching every #{frequency_in_ms}ms..."
     fetch
     sleep frequency_in_ms
     fetch_every(frequency_in_ms)
@@ -78,8 +84,10 @@ defmodule Netwatch do
   defp handle_response(%{status_code: ___, body: body}), do: { :error, body }
 
   defp extract_sections(body) do
-    String.split(body, "\b")
+    all = String.split(body, "\b")
     |> Enum.map(&extract_records(&1))
+    |> List.flatten
+    |> Enum.map(&GenEvent.sync_notify(:netwatch_event_manager, &1))
   end
 
   defp extract_records(section) do
@@ -88,6 +96,16 @@ defmodule Netwatch do
     |> Enum.map(&convert_to_struct(&1))
     |> Enum.map(&split_peer_alias(&1))
     |> Enum.map(&split_radio_alias(&1))
+    |> Enum.map(&generate_struct_hash_id(&1))
+    |> Enum.filter(fn(nw_struct) ->
+                     case nw_struct do
+                       %Netwatch{time_peer_radio_hash_id: time_peer_radio_hash_id} = nw_struct ->
+                         NetwatchRegistry.new?(time_peer_radio_hash_id)
+                       _ ->
+                         false
+                     end
+                   end)
+    |> Enum.map(&register_time_peer_radio_hash_id(&1))
   end
 
   defp extract_columns(record) do
@@ -106,7 +124,8 @@ defmodule Netwatch do
        rssi_in_dbm,
        site_name,
        loss_percentage] ->
-         %Netwatch{start_time: parse_timestamp(start_time),
+         %Netwatch{time_peer_radio_hash_id: "",
+                   start_time: parse_timestamp(start_time),
                    duration_in_seconds: convert_to_float(duration_in_seconds),
                    peer_alias: peer_alias,
                    radio_alias: radio_alias,
@@ -165,6 +184,33 @@ defmodule Netwatch do
                            radio_id: convert_to_integer(radio_id)}
   end
 
+  defp generate_struct_hash_id(nw_struct) do
+    case nw_struct do
+      %Netwatch{start_time: start_time, peer_id: peer_id, radio_id: radio_id} = nw_struct ->
+        generate_struct_hash_id(nw_struct, [start_time, peer_id, radio_id])
+      _ ->
+        # nothing
+    end
+  end
+  defp generate_struct_hash_id(nw_struct, [start_time, peer_id, radio_id]) do
+    hash = Enum.map([start_time, peer_id, radio_id], &to_string(&1))
+    |> List.to_string
+    |>:erlang.phash2
+
+    %Netwatch{ nw_struct | time_peer_radio_hash_id: hash}
+  end
+
+  defp register_time_peer_radio_hash_id(nw_struct) do
+    case nw_struct do
+      %Netwatch{time_peer_radio_hash_id: time_peer_radio_hash_id} = nw_struct ->
+        NetwatchRegistry.put(time_peer_radio_hash_id, 1)
+      _ ->
+        # nothing
+    end
+
+    nw_struct
+  end
+
   defp remove_nbsp(column) do
     String.replace(column, "&nbsp;", " ")
   end
@@ -179,6 +225,8 @@ defmodule Netwatch do
         0.0
       "Not avail." ->
         0.0
+      "N/A" ->
+        0.0
       _ ->
         String.to_float(string_num)
     end
@@ -189,6 +237,8 @@ defmodule Netwatch do
       "" ->
         0
       "Not avail." ->
+        0
+      "N/A" ->
         0
       _ ->
         String.to_integer(string_num)

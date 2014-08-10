@@ -6,9 +6,13 @@ defmodule DmrWatch.Supervisor do
   end
 
   def init([]) do
-    children = []
+    children = [
+      worker(GenEvent, [[name: :netwatch_event_manager]]),
+      worker(NetwatchRegistry, []),
+      worker(Task, [ fn -> Netwatch.fetch_every end ])
+    ]
 
-    # See http://elixir-lang.org/docs/stable/Supervisor.Behaviour.html
+    # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
     # for other strategies and supported options
     supervise(children, strategy: :one_for_one)
   end
