@@ -8,6 +8,7 @@ defmodule DmrWatch.Supervisor do
   def init([]) do
     children = [
       worker(GenEvent, [[name: :netwatch_event_manager]]),
+      worker(GeocoderCache, []),
       worker(NetwatchRegistry, []),
       worker(Task, [ fn -> Netwatch.fetch_every end ])
     ]

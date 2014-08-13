@@ -50,11 +50,17 @@ defmodule Netwatch do
             peer_callsign: nil,
             peer_location: nil,
             peer_id: 0,
+            peer_latitude: nil,
+            peer_longitude: nil,
+            peer_formatted_address: nil,
             radio_alias: nil,
             radio_callsign: nil,
             radio_name: nil,
             radio_location: nil,
             radio_id: 0,
+            radio_latitude: nil,
+            radio_longitude: nil,
+            radio_formatted_address: nil,
             bridge_group_name: "",
             rssi_in_dbm: 0.0,
             site_name: "",
@@ -151,7 +157,7 @@ defmodule Netwatch do
   end
 
   defp split_peer_alias(nw_struct, [peer_id]) do
-    %Netwatch{ nw_struct | radio_id: convert_to_integer(peer_id)}
+    %Netwatch{ nw_struct | peer_id: convert_to_integer(peer_id)}
   end
 
   defp split_peer_alias(nw_struct, [peer_callsign, location_and_id]) do

@@ -7,7 +7,7 @@
   "inflex": {:package, "0.2.4"},
   "jazz": {:package, "0.2.0"},
   "linguist": {:package, "0.1.1"},
-  "phoenix": {:git, "git://github.com/phoenixframework/phoenix.git", "5fde82a820876ef9578adca9522501592827a83b", []},
+  "phoenix": {:git, "git://github.com/phoenixframework/phoenix.git", "d388a1add3a8a0ded946e951c3931a182418cc84", []},
   "plug": {:package, "0.5.3"},
   "ranch": {:package, "1.0.0"},
   "socket": {:package, "0.2.7"},

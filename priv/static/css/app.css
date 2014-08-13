@@ -20,23 +20,24 @@ body {
   background-color: #f5f5f5;
 }
 
-
 /* Custom page CSS
 -------------------------------------------------- */
 /* Not required for template or sticky footer method. */
 
 body > .container {
-  padding: 60px 15px 0;
+  padding: 90px 15px 0;
 }
-.container .text-muted {
-  margin: 20px 0;
+
+#map-canvas {
+  height: 400px;
+  margin-bottom: 25px;
+}
+
+.msg-container {
+  margin-bottom: 25px;
 }
 
 #footer > .container {
   padding-right: 15px;
   padding-left: 15px;
-}
-
-code {
-  font-size: 80%;
 }
