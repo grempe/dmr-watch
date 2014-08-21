@@ -77,7 +77,7 @@ defmodule Netwatch do
     |> handle_response
   end
 
-  def fetch_every(frequency_in_ms \\ 1000) do
+  def fetch_every(frequency_in_ms \\ 1000) when is_integer(frequency_in_ms) do
     fetch
     :timer.sleep(frequency_in_ms)
     fetch_every(frequency_in_ms)
@@ -87,8 +87,13 @@ defmodule Netwatch do
     "http://107.170.211.99:42420/data.txt?param=ajaxminimalnetwatch"
   end
 
-  defp handle_response(%{status_code: 200, body: body}), do: { :ok, extract_sections(body) }
-  defp handle_response(%{status_code: ___, body: body}), do: { :error, body }
+  defp handle_response(%{status_code: 200, body: body})  do
+    {:ok, extract_sections(body)}
+  end
+
+  defp handle_response(%{status_code: ___, body: body}) do
+    {:error, body}
+  end
 
   defp extract_sections(body) do
     String.split(body, "\b")
@@ -119,24 +124,18 @@ defmodule Netwatch do
     |> Enum.map(&register_time_peer_radio_hash_id(&1))
   end
 
-  defp struct_is_valid?(nw_struct) do
-    %Netwatch{radio_id: radio_id, peer_id: peer_id} = nw_struct
-    if radio_id != 0 and peer_id != 0 do
-      true
-    else
-      false
-    end
+  defp struct_is_valid?(%Netwatch{radio_id: radio_id, peer_id: peer_id} = nw_struct) when radio_id > 0 and peer_id > 0 do
+    true
+  end
+
+  defp struct_is_valid?(%Netwatch{radio_id: radio_id, peer_id: peer_id} = nw_struct) when radio_id == 0 and peer_id == 0 do
+    false
   end
 
   defp extract_columns(record) do
     String.split(record, "\v")
     |> Enum.map(&remove_nbsp(&1))
     |> Enum.map(&remove_whitespace(&1))
-  end
-
- defp notify_netwatch_event_manager(record) do
-    :ok = GenEvent.sync_notify(:netwatch_event_manager, record)
-    record
   end
 
   defp convert_to_struct(record) do
@@ -164,72 +163,70 @@ defmodule Netwatch do
     end
   end
 
-  defp split_peer_alias(nw_struct) do
-    case nw_struct do
-      %Netwatch{peer_alias: ""} = nw_struct ->
-        nw_struct
-      %Netwatch{peer_alias: nil} = nw_struct ->
-        nw_struct
-      %Netwatch{peer_alias: peer_alias} = nw_struct ->
-        split_peer_alias(nw_struct, String.split(peer_alias, " - "))
-      _ ->
-        # nothing
-    end
+  defp split_peer_alias(%Netwatch{peer_alias: ""} = nw_struct) do
+    nw_struct
   end
 
-  defp split_peer_alias(nw_struct, [peer_id]) do
+  defp split_peer_alias(%Netwatch{peer_alias: nil} = nw_struct) do
+    nw_struct
+  end
+
+  defp split_peer_alias(%Netwatch{peer_alias: peer_alias} = nw_struct) do
+    split_peer_alias(nw_struct, String.split(peer_alias, " - "))
+  end
+
+  defp split_peer_alias(%Netwatch{} = nw_struct, [peer_id]) do
     %Netwatch{ nw_struct | peer_id: convert_to_integer(peer_id)}
   end
 
-  defp split_peer_alias(nw_struct, [peer_callsign, location_and_id]) do
+  defp split_peer_alias(%Netwatch{} = nw_struct, [peer_callsign, location_and_id]) do
     [peer_location, peer_id] = String.split(location_and_id, " -- ")
     %Netwatch{ nw_struct | peer_callsign: peer_callsign,
                            peer_location: peer_location,
                            peer_id: convert_to_integer(peer_id)}
   end
 
-  defp split_radio_alias(nw_struct) do
-    case nw_struct do
-      %Netwatch{radio_alias: ""} = nw_struct ->
+  defp split_radio_alias(%Netwatch{radio_alias: ""} = nw_struct) do
+    nw_struct
+  end
+
+  defp split_radio_alias(%Netwatch{radio_alias: nil} = nw_struct) do
+    nw_struct
+  end
+
+  defp split_radio_alias(%Netwatch{radio_alias: radio_alias} = nw_struct) do
+    cond do
+      Regex.match?(~r/^(\w+)\s*-\s*(\w+)\s*-\s*([\w+,{0,1}\s]+)--\s*(\d+)$/, radio_alias) ->
+        # "N6BMW - Dan - Ojai California USA -- 3106370"
+        # "WB8SFY - Mark - Commerce Twp. Michigan USA -- 3126248"
+        # "WF6R - Stephan -Palo Alto California USA -- 3106448"
+        [_h | [radio_callsign, radio_name, radio_location, radio_id]] = Regex.run(~r/^(\w+)\s*-\s*(\w+)\s*-\s*([\w+,{0,1}\s]+)--\s*(\d+)$/, radio_alias)
+        split_radio_alias(nw_struct, [radio_callsign, radio_name, radio_location, radio_id])
+      Regex.match?(~r/^\d+$/, radio_alias) ->
+        # "3106370"
+        split_radio_alias(nw_struct, [radio_alias])
+      Regex.match?(~r/^(\w+)\s(\w+)\s+([\w+,{0,1}\s]+)-\s+(\d+)$/, radio_alias) ->
+        # "K6ACR Sam Turlock California United States - 31070"
+        [_h | [radio_callsign, radio_name, radio_location, radio_id]] = Regex.run(~r/^(\w+)\s(\w+)\s+([\w+,{0,1}\s]+)-\s+(\d+)$/, radio_alias)
+        split_radio_alias(nw_struct, [radio_callsign, radio_name, radio_location, radio_id])
+      true ->
+        Logger.debug "ERROR : Unknown radio_alias format : '#{radio_alias}'"
         nw_struct
-      %Netwatch{radio_alias: nil} = nw_struct ->
-        nw_struct
-      %Netwatch{radio_alias: radio_alias} = nw_struct ->
-        cond do
-          Regex.match?(~r/^(\w+)\s*-\s*(\w+)\s*-\s*([\w+,{0,1}\s]+)--\s*(\d+)$/, radio_alias) ->
-            # "N6BMW - Dan - Ojai California USA -- 3106370"
-            # "WB8SFY - Mark - Commerce Twp. Michigan USA -- 3126248"
-            # "WF6R - Stephan -Palo Alto California USA -- 3106448"
-            [_h | [radio_callsign, radio_name, radio_location, radio_id]] = Regex.run(~r/^(\w+)\s*-\s*(\w+)\s*-\s*([\w+,{0,1}\s]+)--\s*(\d+)$/, radio_alias)
-            split_radio_alias(nw_struct, [radio_callsign, radio_name, radio_location, radio_id])
-          Regex.match?(~r/^\d+$/, radio_alias) ->
-            # "3106370"
-            split_radio_alias(nw_struct, [radio_alias])
-          Regex.match?(~r/^(\w+)\s(\w+)\s+([\w+,{0,1}\s]+)-\s+(\d+)$/, radio_alias) ->
-            # "K6ACR Sam Turlock California United States - 31070"
-            [_h | [radio_callsign, radio_name, radio_location, radio_id]] = Regex.run(~r/^(\w+)\s(\w+)\s+([\w+,{0,1}\s]+)-\s+(\d+)$/, radio_alias)
-            split_radio_alias(nw_struct, [radio_callsign, radio_name, radio_location, radio_id])
-          true ->
-            Logger.debug "ERROR : Unknown radio_alias format : '#{radio_alias}'"
-            nw_struct
-        end
-      _ ->
-        # nothing
     end
   end
 
-  defp split_radio_alias(nw_struct, [radio_id]) do
+  defp split_radio_alias(%Netwatch{} = nw_struct, [radio_id]) do
     %Netwatch{ nw_struct | radio_id: convert_to_integer(radio_id)}
   end
 
-  defp split_radio_alias(nw_struct, [radio_callsign, radio_name, radio_location, radio_id]) do
+  defp split_radio_alias(%Netwatch{} = nw_struct, [radio_callsign, radio_name, radio_location, radio_id]) do
     %Netwatch{ nw_struct | radio_callsign: radio_callsign,
                            radio_name: radio_name,
                            radio_location: radio_location,
                            radio_id: convert_to_integer(radio_id)}
   end
 
-  defp geocode_location(:radio, nw_struct) do
+  defp geocode_location(:radio, %Netwatch{} = nw_struct) do
     case nw_struct do
       %Netwatch{radio_location: ""} = nw_struct ->
         nw_struct
@@ -247,7 +244,7 @@ defmodule Netwatch do
     end
   end
 
-  defp geocode_location(:peer, nw_struct) do
+  defp geocode_location(:peer, %Netwatch{} = nw_struct) do
     case nw_struct do
       %Netwatch{peer_location: ""} = nw_struct ->
         nw_struct
@@ -276,15 +273,11 @@ defmodule Netwatch do
     end
   end
 
-  defp generate_struct_hash_id(nw_struct) do
-    case nw_struct do
-      %Netwatch{start_time: start_time, peer_id: peer_id, radio_id: radio_id} = nw_struct ->
-        generate_struct_hash_id(nw_struct, [start_time, peer_id, radio_id])
-      _ ->
-        # nothing
-    end
+  defp generate_struct_hash_id(%Netwatch{start_time: start_time, peer_id: peer_id, radio_id: radio_id} = nw_struct) do
+    generate_struct_hash_id(nw_struct, [start_time, peer_id, radio_id])
   end
-  defp generate_struct_hash_id(nw_struct, [start_time, peer_id, radio_id]) do
+
+  defp generate_struct_hash_id(%Netwatch{} = nw_struct, [start_time, peer_id, radio_id]) do
     hash = Enum.map([start_time, peer_id, radio_id], &to_string(&1))
     |> List.to_string
     |>:erlang.phash2
@@ -292,14 +285,13 @@ defmodule Netwatch do
     %Netwatch{ nw_struct | time_peer_radio_hash_id: hash}
   end
 
-  defp register_time_peer_radio_hash_id(nw_struct) do
-    case nw_struct do
-      %Netwatch{time_peer_radio_hash_id: time_peer_radio_hash_id} = nw_struct ->
-        NetwatchRegistry.put(time_peer_radio_hash_id, 1)
-      _ ->
-        # nothing
-    end
+  defp register_time_peer_radio_hash_id(%Netwatch{time_peer_radio_hash_id: time_peer_radio_hash_id} = nw_struct) do
+    NetwatchRegistry.put(time_peer_radio_hash_id, 1)
+    nw_struct
+  end
 
+  defp notify_netwatch_event_manager(%Netwatch{} = nw_struct) do
+    :ok = GenEvent.sync_notify(:netwatch_event_manager, nw_struct)
     nw_struct
   end
 
@@ -338,7 +330,7 @@ defmodule Netwatch do
   end
 
   def parse_timestamp(ts) do
-    # Sample : "03:48:38.471 Aug 5" to "2014-08-05T03:48:38+0000"
+    # Sample : "03:48:38.471 Aug 5" -> "2014-08-05T03:48:38+0000"
 
     if String.valid?(ts) do
       time = Regex.run(~r/^\d\d:\d\d:\d\d/, ts)
@@ -357,11 +349,13 @@ defmodule Netwatch do
      List.first(t)
      |> parse_time
   end
+
   defp parse_time(t) when is_binary(t) do
     String.split(t, ":")
     |> Enum.map(&String.to_integer(&1))
     |> List.to_tuple
   end
+
   defp parse_time(t) when t == nil do
     # Something is wrong with input timestamp. Replace with current time.
     {Timex.Date.now.hour, Timex.Date.now.minute, Timex.Date.now.second}
@@ -371,9 +365,11 @@ defmodule Netwatch do
      List.first(d)
      |> parse_day
   end
+
   defp parse_day(d) when is_binary(d) do
     String.to_integer(d)
   end
+
   defp parse_day(d) when d == nil do
     # Something is wrong with input timestamp. Replace with today's day Integer.
     Timex.Date.now.day
