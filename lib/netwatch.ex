@@ -266,6 +266,9 @@ defmodule Netwatch do
     case Geocoder.lookup(location) do
       {:ok, %{"formatted_address" => fa, "geometry" => %{"location" => %{"lat" => lat, "lng" => lng} } } } ->
         {:ok, [fa, lat, lng]}
+      {:ok, []} ->
+        # cached empty result
+        {:error, []}
       {:error, reason} ->
         {:error, []}
       {:rate_limited, []} ->
