@@ -13,7 +13,11 @@ defmodule NetwatchRegistry do
   Gets a value from the `bucket` by `key`.
   """
   def get(bucket \\ @default_bucket, key) do
-    Agent.get(bucket, &HashDict.get(&1, key))
+    if val = Agent.get(bucket, &HashDict.get(&1, key)) do
+      {:ok, val}
+    else
+      {:error, nil}
+    end
   end
 
   @doc """
@@ -33,6 +37,21 @@ defmodule NetwatchRegistry do
 
   def keys(bucket \\ @default_bucket) do
     Agent.get(bucket, &HashDict.keys(&1))
+  end
+
+  @doc """
+  Deletes the `value` for the given `key` in the `bucket`.
+  """
+  def delete(bucket \\ @default_bucket, key) do
+    Agent.update(bucket, &HashDict.drop(&1, [key]))
+  end
+
+  @doc """
+  Flush all `keys` in the `bucket` by iterating over each and deleting each.
+  """
+  def flush(bucket \\ @default_bucket) do
+    keys
+    |> Enum.map(&delete(&1))
   end
 
 end

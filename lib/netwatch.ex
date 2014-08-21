@@ -44,6 +44,8 @@ defmodule Netwatch do
                                 time should be enough to detect any duplicate.
   """
 
+  require Logger
+
   defstruct start_time: "",
             duration_in_seconds: 0,
             peer_alias: nil,
@@ -76,9 +78,8 @@ defmodule Netwatch do
   end
 
   def fetch_every(frequency_in_ms \\ 1000) do
-    import :timer, only: [ sleep: 1 ]
     fetch
-    sleep frequency_in_ms
+    :timer.sleep(frequency_in_ms)
     fetch_every(frequency_in_ms)
   end
 
@@ -90,18 +91,22 @@ defmodule Netwatch do
   defp handle_response(%{status_code: ___, body: body}), do: { :error, body }
 
   defp extract_sections(body) do
-    all = String.split(body, "\b")
+    String.split(body, "\b")
     |> Enum.map(&extract_records(&1))
     |> List.flatten
-    |> Enum.map(&GenEvent.sync_notify(:netwatch_event_manager, &1))
+    |> Enum.filter(fn(nw_struct) -> struct_is_valid?(nw_struct) end )
+    |> Enum.map(&notify_netwatch_event_manager(&1))
   end
 
   defp extract_records(section) do
     String.split(section, "\t")
     |> Enum.map(&extract_columns(&1))
     |> Enum.map(&convert_to_struct(&1))
+    |> Enum.filter(fn(nw_struct) -> if nw_struct, do: true, else: false end )  # filter nil nw_struct
     |> Enum.map(&split_peer_alias(&1))
     |> Enum.map(&split_radio_alias(&1))
+    |> Enum.map(&geocode_location(:radio, &1))
+    |> Enum.map(&geocode_location(:peer, &1))
     |> Enum.map(&generate_struct_hash_id(&1))
     |> Enum.filter(fn(nw_struct) ->
                      case nw_struct do
@@ -114,10 +119,24 @@ defmodule Netwatch do
     |> Enum.map(&register_time_peer_radio_hash_id(&1))
   end
 
+  defp struct_is_valid?(nw_struct) do
+    %Netwatch{radio_id: radio_id, peer_id: peer_id} = nw_struct
+    if radio_id != 0 and peer_id != 0 do
+      true
+    else
+      false
+    end
+  end
+
   defp extract_columns(record) do
     String.split(record, "\v")
     |> Enum.map(&remove_nbsp(&1))
     |> Enum.map(&remove_whitespace(&1))
+  end
+
+ defp notify_netwatch_event_manager(record) do
+    :ok = GenEvent.sync_notify(:netwatch_event_manager, record)
+    record
   end
 
   defp convert_to_struct(record) do
@@ -147,10 +166,12 @@ defmodule Netwatch do
 
   defp split_peer_alias(nw_struct) do
     case nw_struct do
+      %Netwatch{peer_alias: ""} = nw_struct ->
+        nw_struct
+      %Netwatch{peer_alias: nil} = nw_struct ->
+        nw_struct
       %Netwatch{peer_alias: peer_alias} = nw_struct ->
-        if peer_alias != "" do
-          split_peer_alias(nw_struct, String.split(peer_alias, " - "))
-        end
+        split_peer_alias(nw_struct, String.split(peer_alias, " - "))
       _ ->
         # nothing
     end
@@ -169,9 +190,26 @@ defmodule Netwatch do
 
   defp split_radio_alias(nw_struct) do
     case nw_struct do
+      %Netwatch{radio_alias: ""} = nw_struct ->
+        nw_struct
+      %Netwatch{radio_alias: nil} = nw_struct ->
+        nw_struct
       %Netwatch{radio_alias: radio_alias} = nw_struct ->
-        if radio_alias != "" do
-          split_radio_alias(nw_struct, String.split(radio_alias, " - "))
+        cond do
+          Regex.match?(~r/^\w+\s+-\s+\w+\s+-\s+[\w+.{0,1},{0,1}\s]+--\s+\d+$/, radio_alias) ->
+            # "N6BMW - Dan - Ojai California USA -- 3106370"
+            # "WB8SFY - Mark - Commerce Twp. Michigan USA -- 3126248"
+            [_h | [radio_callsign, radio_name, radio_location, radio_id]] = Regex.run(~r/^(\w+)\s+-\s+(\w+)\s+-\s+([\w+,{0,1}\s]+)--\s+(\d+)$/, radio_alias)
+            split_radio_alias(nw_struct, [radio_callsign, radio_name, radio_location, radio_id])
+          Regex.match?(~r/^\d+$/, radio_alias) ->
+            # "3106370"
+            split_radio_alias(nw_struct, [radio_alias])
+          Regex.match?(~r/^(\w+)\s(\w+)\s+([\w+,{0,1}\s]+)-\s+(\d+)$/, radio_alias) ->
+            # "K6ACR Sam Turlock California United States - 31070"
+            [_h | [radio_callsign, radio_name, radio_location, radio_id]] = Regex.run(~r/^(\w+)\s(\w+)\s+([\w+,{0,1}\s]+)-\s+(\d+)$/, radio_alias)
+            split_radio_alias(nw_struct, [radio_callsign, radio_name, radio_location, radio_id])
+          true ->
+            Logger.debug "ERROR : Unknown radio_alias format : '#{radio_alias}'"
         end
       _ ->
         # nothing
@@ -182,12 +220,58 @@ defmodule Netwatch do
     %Netwatch{ nw_struct | radio_id: convert_to_integer(radio_id)}
   end
 
-  defp split_radio_alias(nw_struct, [radio_callsign, radio_name, location_and_radio_id]) do
-    [radio_location, radio_id] = String.split(location_and_radio_id, " -- ")
+  defp split_radio_alias(nw_struct, [radio_callsign, radio_name, radio_location, radio_id]) do
     %Netwatch{ nw_struct | radio_callsign: radio_callsign,
                            radio_name: radio_name,
                            radio_location: radio_location,
                            radio_id: convert_to_integer(radio_id)}
+  end
+
+  defp geocode_location(:radio, nw_struct) do
+    case nw_struct do
+      %Netwatch{radio_location: ""} = nw_struct ->
+        nw_struct
+      %Netwatch{radio_location: nil} = nw_struct ->
+        nw_struct
+      %Netwatch{radio_location: location} = nw_struct ->
+        case geocode_location_extract(location) do
+          {:ok, [fa, lat, lng]} ->
+            %Netwatch{ nw_struct | radio_formatted_address: fa,
+                                   radio_latitude: lat,
+                                   radio_longitude: lng}
+          {:error, []} ->
+            nw_struct
+        end
+    end
+  end
+
+  defp geocode_location(:peer, nw_struct) do
+    case nw_struct do
+      %Netwatch{peer_location: ""} = nw_struct ->
+        nw_struct
+      %Netwatch{peer_location: nil} = nw_struct ->
+        nw_struct
+      %Netwatch{peer_location: location} = nw_struct ->
+        case geocode_location_extract(location) do
+          {:ok, [fa, lat, lng]} ->
+            %Netwatch{ nw_struct | peer_formatted_address: fa,
+                                   peer_latitude: lat,
+                                   peer_longitude: lng}
+          {:error, []} ->
+            nw_struct
+        end
+    end
+  end
+
+  defp geocode_location_extract(location) do
+    case Geocoder.lookup(location) do
+      {:ok, %{"formatted_address" => fa, "geometry" => %{"location" => %{"lat" => lat, "lng" => lng} } } } ->
+        {:ok, [fa, lat, lng]}
+      {:error, reason} ->
+        {:error, []}
+      {:rate_limited, []} ->
+        {:error, []}
+    end
   end
 
   defp generate_struct_hash_id(nw_struct) do

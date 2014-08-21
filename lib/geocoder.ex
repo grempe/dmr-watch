@@ -11,6 +11,8 @@ defmodule Geocoder do
 
   """
 
+  require Logger
+
   @user_agent [ {"User-agent", "Elixir DmrWatch"} ]
   # FIXME : Put in config or env var.
   @api_key "AIzaSyA_5BmMgEsx9Mar1jXCj3NEIpsyPPsOoXk"
@@ -21,46 +23,65 @@ defmodule Geocoder do
   def lookup(address) do
     address
     |> sanitize_address
-    |> get_cached_result_for_address
+    |> get_or_cache_result_for_address
   end
 
   defp sanitize_address(address) do
     URI.encode(address)
   end
 
-  defp get_cached_result_for_address(address) do
+  defp get_or_cache_result_for_address(address) do
     case GeocoderCache.get(address) do
-      {:ok, cached_results} ->
-        cached_results
-      {:error, nil} ->
-        case http_client_get(address) do
-          %{status_code: 200, body: body} ->
-            case parse_response_body(body) do
-              {:ok, results} ->
-                :ok = GeocoderCache.put(address, {:ok, results})
-                {:ok, results}
-              {:error, body} ->
-                {:error, body}
+      {:ok, :not_found} ->
+        # Rate Limit : 2500 req per 24 hours (86_400_000ms) max
+        # FIXME : change to 2500 from 100 when ready
+        case ExRated.check_rate("google-geocoder-api", 86_400_000, 500) do
+          {:ok, _counter} ->
+            Logger.debug "Geocoder.get_or_cache_result_for_address : ext API call required : '#{address}'"
+            case http_client_get(address) do
+              %{status_code: 200, body: body} ->
+                case parse_response_body(body) do
+                  {:ok, result} ->
+                    :ok = GeocoderCache.put(address, result)
+                    {:ok, result}
+                  {:error, reason} ->
+                    Logger.error "Geocoder.get_or_cache_result_for_address : #{address} : #{reason}"
+                    # cache the empty result so we don't query the same thing every second.
+                    :ok = GeocoderCache.put(address, [])
+                    {:error, reason}
+                end
+              %{status_code: ___, body: body} ->
+                { :error, body }
             end
-          %{status_code: ___, body: body} ->
-            { :error, body }
+          {:fail, limit} ->
+            Logger.info "Geocoder.lookup : API call : rate limit of #{limit} reached : '#{address}'"
+            {:rate_limited, []}
         end
+      {:ok, cached_result} ->
+        {:ok, cached_result}
     end
   end
 
-  defp http_client_get(address) do
+  def http_client_get(address) do
     url = "https://maps.googleapis.com/maps/api/geocode/json?address=#{address}&key=#{@api_key}"
     HTTPoison.get(url, @user_agent)
   end
 
   defp parse_response_body(body) do
     use Jazz
-
     case JSON.decode!(body) do
-      %{"results" => results} ->
-        {:ok, results}
-      _ ->
-        {:error, body}
+      %{"results" => [], "status" => "OVER_QUERY_LIMIT"} ->
+        {:error, :over_query_limit}
+      %{"results" => [], "status" => "ZERO_RESULTS"} ->
+        {:error, :zero_results}
+      %{"results" => [], "status" => "REQUEST_DENIED"} ->
+        {:error, :request_denied}
+      %{"results" => [], "status" => "INVALID_REQUEST"} ->
+        {:error, :invalid_request}
+      %{"results" => [], "status" => "UNKNOWN_ERROR"} ->
+        {:error, :unknown_error}
+      %{"results" => results, "status" => "OK"} ->
+        {:ok, Enum.at(results, 0)}
     end
   end
 

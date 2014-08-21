@@ -7,9 +7,9 @@ config :phoenix, DmrWatch.Router,
   cookies: true,
   consider_all_requests_local: true,
   session_key: "_dmr_watch_key",
-  session_secret: "ODU1U&Q40%R01T2+9B(QFH$*XGI#Y^(^R_OIWP&CR4#N2__TWJ*=_8XE$U+SY6WENSM3D77"
+  session_secret: "0EE=TT21H0JO99ZRU0W@J9_$&2%HG1GNK(U3YGOE5&#@JE#4)*9$12=3U292)5+P!G$W21HI"
 
-config :phoenix, :logger,
+config :logger, :console,
   level: :debug
 
 

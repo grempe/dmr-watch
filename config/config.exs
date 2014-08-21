@@ -12,10 +12,12 @@ config :phoenix, DmrWatch.Router,
   static_assets: true,
   cookies: true,
   session_key: "_dmr_watch_key",
-  session_secret: "ODU1U&Q40%R01T2+9B(QFH$*XGI#Y^(^R_OIWP&CR4#N2__TWJ*=_8XE$U+SY6WENSM3D77"
+  session_secret: "0EE=TT21H0JO99ZRU0W@J9_$&2%HG1GNK(U3YGOE5&#@JE#4)*9$12=3U292)5+P!G$W21HI"
 
-config :phoenix, :logger,
-  level: :error
+config :logger, :console,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:request_id]
+
 
 
 # Import environment specific config. Note, this must remain at the bottom of

@@ -3,5 +3,5 @@
 </div>
 
 <div class="row">
-  <div id="transmissions" class="col-xs-12"></div>
+  <div id="transmissions" class="col-xs-12"><p id='tx-placeholder' class='h4 text-primary'>Connecting...</p></div>
 </div>
