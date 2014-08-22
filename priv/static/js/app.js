@@ -13,9 +13,10 @@ $( document ).ready(function() {
     }
 
     if (message.rssi_in_dbm != 0) {
-      if (message.rssi_in_dbm < -85) {var label = "label label-info"} else {var label = "text-muted"}
-      if (message.rssi_in_dbm < -90) {var label = "label label-warning"} else {var label = "text-muted"}
-      if (message.rssi_in_dbm < -95) {var label = "label label-danger"} else {var label = "text-muted"}
+      var label = "text-muted"
+      if (message.rssi_in_dbm < -85 && message.rssi_in_dbm >= -95) {label = "label label-info"}
+      if (message.rssi_in_dbm < -95 && message.rssi_in_dbm >= -105) {label = "label label-warning"}
+      if (message.rssi_in_dbm < -105) {label = "label label-danger"}
 
       str += "<span class='small " + label + "'>RSSI (dBm) : " + message.rssi_in_dbm + "</span><br />"
     } else {
@@ -23,8 +24,9 @@ $( document ).ready(function() {
     }
 
     if (message.loss_percentage >= 0) {
-      if (message.loss_percentage > 1) {var label = "label label-warning"} else {var label = "text-muted"}
-      if (message.loss_percentage > 5) {var label = "label label-danger"} else {var label = "text-muted"}
+      var label = "text-muted"
+      if (message.loss_percentage > 1) {label = "label label-warning"}
+      if (message.loss_percentage > 5) {label = "label label-danger"}
       str += "<span class='small " + label + "'>Packet Loss (%) : " + message.loss_percentage + "</span>"
     }
 
@@ -34,11 +36,11 @@ $( document ).ready(function() {
   var netwatchTxTemplateUserCol = function(message) {
     var str = ""
     if (message.radio_callsign && message.radio_name){
-      str += "<strong class='h5 text-primary'>" + message.radio_callsign + "</strong>&nbsp;&mdash;&nbsp;<strong class='h5 text-muted'>" + message.radio_name + "</strong><br />"
+      str += "<a href='http://callook.info/" + message.radio_callsign + "' target=_blank>" + message.radio_callsign + "</a>&nbsp;&mdash;&nbsp;<span class='text-muted'>" + message.radio_name + "</span><br />"
     }
 
     if (message.radio_callsign && !message.radio_name){
-      str += "<strong class='h5 text-primary'>" + message.radio_callsign + "</strong><br />"
+      str += "<a href='http://callook.info/" + message.radio_callsign + "' target=_blank>" + message.radio_callsign + "</a><br />"
     }
 
     if (message.radio_id){
@@ -59,15 +61,19 @@ $( document ).ready(function() {
   var netwatchTxTemplatePeerCol = function(message) {
     var str = ""
     if (message.peer_callsign){
-      str += message.peer_callsign + "<br />"
+      str += "<a href='http://callook.info/" + message.peer_callsign + "' target=_blank>" + message.peer_callsign + "</a><br />"
     }
 
     if (message.peer_id){
       str += message.peer_id + "<br />"
     }
 
-    if (message.peer_id){
-     str += (message.peer_formatted_address || message.peer_location)
+    if (message.peer_formatted_address){
+     str += message.peer_formatted_address
+    }
+
+    if (message.peer_location && !message.peer_formatted_address){
+      str += message.peer_location
     }
 
     return str
@@ -133,7 +139,7 @@ $( document ).ready(function() {
   socket.join("netwatch", "transmit", {}, function(chan){
 
     chan.on("join", function(message){
-      $cnxn_status.html('<span class="label label-success">connected</span>');
+      $cnxn_status.html('<span class="h2 label label-success">connected</span>');
       $("#tx-placeholder").html("<p>Connected. Waiting for DMR transmissions.</p>");
     });
 
@@ -145,4 +151,5 @@ $( document ).ready(function() {
     });
 
   });
+
 });

@@ -73,10 +73,14 @@
     <script type="text/javascript">
       function initialize() {
         var mapOptions = {
-          center: new google.maps.LatLng(17.059417 , -96.721622),
-          zoom: 2,
-          mapTypeId: 'terrain'
+          center: new google.maps.LatLng(37.688889 , -97.336111), // Wichita, KS
+          zoom: 4,
+          minZoom: 2,
+          mapTypeId: 'terrain',
+          keyboardShortcuts: false,
+          scrollwheel: false
         };
+
         // this.map is the key to allowing adding markers after the fact
         // see : http://stackoverflow.com/questions/6335620/adding-markers-to-google-maps-v3-after-map-created
         this.map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
