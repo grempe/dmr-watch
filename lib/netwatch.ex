@@ -133,7 +133,7 @@ defmodule Netwatch do
     true
   end
 
-  defp struct_is_valid?(%Netwatch{radio_id: radio_id, peer_id: peer_id} = nw_struct) when radio_id == 0 and peer_id == 0 do
+  defp struct_is_valid?(%Netwatch{radio_id: radio_id, peer_id: peer_id} = nw_struct) when radio_id == 0 or peer_id == 0 do
     false
   end
 
@@ -201,11 +201,12 @@ defmodule Netwatch do
 
   defp split_radio_alias(%Netwatch{radio_alias: radio_alias} = nw_struct) do
     cond do
-      Regex.match?(~r/^(\w+)\s*-\s*(\w+)\s*-\s*([\w+.{0,1},{0,1}\s]+)--\s*(\d+)$/, radio_alias) ->
+      Regex.match?(~r/^(\w+)\s*-\s*(\w+)\s*-\s*([\w+.{0,1},{0,1}\-{0,1}\s]+)--\s*(\d+)$/, radio_alias) ->
         # "N6BMW - Dan - Ojai California USA -- 3106370"
         # "WB8SFY - Mark - Commerce Twp. Michigan USA -- 3126248"
         # "WF6R - Stephan -Palo Alto California USA -- 3106448"
-        [_h | [radio_callsign, radio_name, radio_location, radio_id]] = Regex.run(~r/^(\w+)\s*-\s*(\w+)\s*-\s*([\w+.{0,1},{0,1}\s]+)--\s*(\d+)$/, radio_alias)
+        # "IK4UPB - Gabriele - Castelfranco Emilia Emilia-Romagna ITA -- 2224004"
+        [_h | [radio_callsign, radio_name, radio_location, radio_id]] = Regex.run(~r/^(\w+)\s*-\s*(\w+)\s*-\s*([\w+.{0,1},{0,1}\-{0,1}\s]+)--\s*(\d+)$/, radio_alias)
         split_radio_alias(nw_struct, [radio_callsign, radio_name, radio_location, radio_id])
       Regex.match?(~r/^\d+$/, radio_alias) ->
         # "3106370"
