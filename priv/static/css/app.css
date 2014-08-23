@@ -1,5 +1,6 @@
 /* Sticky footer styles
 -------------------------------------------------- */
+
 html {
   position: relative;
   min-height: 100%;
@@ -10,22 +11,45 @@ body {
   margin-bottom: 60px;
 }
 
-#footer {
-  position: fixed;
-  bottom: 0px;
+.footer {
+  position: absolute;
+  bottom: 0;
   width: 100%;
   /* Set the fixed height of the footer here */
   height: 60px;
-  padding-top: 1em;
   background-color: #f5f5f5;
 }
+
+/* http://getbootstrap.com/getting-started/#support-ie10-width */
+@-webkit-viewport   { width: device-width; }
+@-moz-viewport      { width: device-width; }
+@-ms-viewport       { width: device-width; }
+@-o-viewport        { width: device-width; }
+@viewport           { width: device-width; }
 
 /* Custom page CSS
 -------------------------------------------------- */
 /* Not required for template or sticky footer method. */
 
 body > .container {
-  padding: 90px 15px 0;
+  padding: 60px 15px 0;
+}
+
+.container .text-muted {
+  margin: 20px 0;
+}
+
+#main-tablist {
+  margin-bottom: 5px;
+}
+
+.footer > .container {
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+code {
+  font-size: 80%;
 }
 
 #map-canvas {
@@ -35,9 +59,4 @@ body > .container {
 
 .msg-container {
   margin-bottom: 25px;
-}
-
-#footer > .container {
-  padding-right: 15px;
-  padding-left: 15px;
 }

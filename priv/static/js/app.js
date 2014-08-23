@@ -1,7 +1,5 @@
 $( document ).ready(function() {
   var socket         = new Phoenix.Socket("ws://" + location.host +  "/ws");
-  var $cnxn_status   = $("#cnxn-status");
-  var $transmissions = $("#transmissions");
 
   var netwatchTxTemplateTimeCol = function(message) {
     var start_time = moment(message.start_time)
@@ -139,15 +137,29 @@ $( document ).ready(function() {
   socket.join("netwatch", "transmit", {}, function(chan){
 
     chan.on("join", function(message){
-      $cnxn_status.html('<span class="h2 label label-success">connected</span>');
       $("#tx-placeholder").html("<p>Connected. Waiting for DMR transmissions.</p>");
+      $("#tx-placeholder").fadeIn();
     });
 
     chan.on("tx:in_progress", function(message){
-      var parsed = $.parseJSON(message);
-      console.log(parsed);
-      $("#tx-placeholder").remove()
-      $transmissions.prepend(netwatchTxTemplate(parsed));
+      console.log(message)
+  //    var parsed = $.parseJSON(message);
+  //    console.log(parsed);
+      $("#tx-placeholder").fadeOut()
+      $("#transmissions").prepend(netwatchTxTemplate(message));
+    });
+
+  });
+
+  socket.join("netwatch", "status", {}, function(chan){
+
+    chan.on("join", function(message){
+      $("#server-status-row").fadeOut();
+    });
+
+    chan.on("server:update", function(message){
+      $("#server-status-col").html("<p id='server-status-text' class='h4 text-danger'>" + message + "</p>");
+      $("#server-status-row").fadeIn();
     });
 
   });

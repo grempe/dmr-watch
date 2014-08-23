@@ -19,6 +19,9 @@
     <!-- Custom styles for this template -->
     <link href="/css/app.css" rel="stylesheet">
 
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="/static/js/ie10-viewport-bug-workaround.js"></script>
+
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
       <script src="/components/html5shiv/dist/html5shiv.min.js"></script>
@@ -27,44 +30,118 @@
   </head>
 
   <body>
-    <!-- Fixed navbar -->
-    <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+
+    <div class="navbar navbar-default navbar-fixed-top navbar-inverse" role="navigation">
       <div class="container">
         <div class="navbar-header">
-          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand" href="#">DMR Watch</a>
+          <span class="navbar-brand">DMR Watch</span>
+          <p class="navbar-text">Realtime Monitoring of the <a href="http://www.norcaldmr.org/" target="_blank">NorCal DMR</a> Amateur Radio Network</p>
         </div>
-        <div class="collapse navbar-collapse">
-          <ul class="nav navbar-nav pull-right">
-            <li id="cnxn-status"><span class="label label-default">connecting</span></li>
-          </ul>
-
-        </div><!--/.nav-collapse -->
       </div>
     </div>
 
     <!-- Begin page content -->
     <div class="container">
-      <%= @inner %>
-    </div>
+      <!-- Nav tabs -->
+      <ul id="main-tablist" class="nav nav-pills" role="tablist">
+        <li class="active"><a href="#onair" role="tab" data-toggle="tab">ON AIR</a></li>
+        <li><a href="#about" role="tab" data-toggle="tab">About</a></li>
+        <li><a href="#donate" role="tab" data-toggle="tab">Donate</a></li>
+      </ul>
+
+      <!-- Tab panes -->
+      <div class="tab-content">
+        <div class="tab-pane fade in active" id="onair">
+          <%= @inner %>
+        </div>
+
+        <div class="tab-pane fade" id="about">
+          <div class="page-header">
+            <h1>About <small>DMR Watch</small></h1>
+          </div>
+        </div>
+
+        <div class="tab-pane fade" id="donate">
+          <div class="page-header">
+            <h1>Please Donate <small>you'll enjoy it.</small></h1>
+          </div>
+
+          <blockquote>
+            <p>No one is useless in this world who lightens the burdens of another.</p>
+            <footer>Charles Dickens in <cite title="Dr. Marigold">Dr. Marigold</cite></footer>
+          </blockquote>
+
+          <div class="row">
+            <div class="col-xs-9">
+              <p>I hope you are enjoying using this site. It is the result of many hours of effort. DMR Watch takes significant time and expense to maintain and I depend on your donations to keep it running. Server hosting and bandwidth costs are not trivial and the bill comes every month. Please consider an ongoing recurring donation using Gittip, however even a one time donation is very much appreciated.</p>
+
+              <p>Thank you.</p>
+              <p>Glenn Rempe (K6GDR)</p>
+            </div>
+          </div>
+
+          <br />
+          <br />
+
+          <div class="row">
+            <div class="col-xs-3">
+              <p class="h4">Gittip:</p>
+              <script data-gittip-username="grempe" src="//gttp.co/v1.js"></script>
+            </div>
+            <div class="col-xs-3">
+              <p class="h4">Paypal:</p>
+              <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+              <input type="hidden" name="cmd" value="_s-xclick">
+              <input type="hidden" name="hosted_button_id" value="56XJZTX7B422J">
+              <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+              <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+              </form>
+            </div>
+            <div class="col-xs-3">
+              <p class="h4">Bitcoin:</p>
+              <div style="font-size:16px;margin:0 auto;width:300px" class="blockchain-btn" data-address="1GqP6HS35nbgSjoYaY6JWGhznxzujC6sNN" data-shared="false">
+                <div class="blockchain stage-begin">
+                    <img src="https://blockchain.info//Resources/buttons/donate_64.png"/>
+                </div>
+                <div class="blockchain stage-loading" style="text-align:center">
+                    <img src="https://blockchain.info//Resources/loading-large.gif"/>
+                </div>
+                <div class="blockchain stage-ready">
+                     <p align="center">Please Donate To Bitcoin Address: <b>[[address]]</b></p>
+                     <p align="center" class="qr-code"></p>
+                </div>
+                <div class="blockchain stage-paid">
+                     Donation of <b>[[value]] BTC</b> Received. Thank You.
+                </div>
+                <div class="blockchain stage-error">
+                    <font color="red">[[error]]</font>
+                </div>
+              </div>
+            </div>
+          </div>
+
+      </div> <!-- tab-content -->
+    </div> <!-- container -->
 
     <!-- Begin footer content -->
-    <div id="footer">
+    <div class="footer">
       <div class="container">
-        <div class="row"><span class="h4 text-primary">DMR Watch is made possible by your donations. Please help.</span></div>
+        <div class="row">
+          <p class="col-xs-10 text-muted">&copy; Copyright 2014 - Glenn Rempe - <a href='http://callook.info/K6GDR' target='_blank'>K6GDR</a> - <a href='mailto:glenn@rempe.us'>glenn@rempe.us</a></p>
+          <p class="col-xs-2 text-muted">
+          <a href="https://github.com/grempe/dmr-watch" target='_blank'>GitHub</a>&nbsp;|&nbsp;<a href="https://github.com/grempe/dmr-watch/issues" target='_blank'>File a Bug</a>
+          </p>
+        </div>
       </div>
     </div>
 
     <script src="/components/jquery/dist/jquery.min.js" type="text/javascript"></script>
     <script src="/components/bootstrap/dist/js/bootstrap.min.js" type="text/javascript"></script>
+
     <script src="/components/moment/min/moment-with-locales.min.js" type="text/javascript"></script>
     <script src="/components/moment-timezone/builds/moment-timezone.min.js" type="text/javascript"></script>
     <script src="/js/phoenix.js" type="text/javascript"></script>
+    <script type="text/javascript" src="https://blockchain.info//Resources/wallet/pay-now-button.js"></script>
     <script src="/js/app.js" type="text/javascript"></script>
 
     <!-- GOOGLE MAPS -->

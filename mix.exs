@@ -26,12 +26,11 @@ defmodule DmrWatch.Mixfile do
     [
       {:phoenix, github: "phoenixframework/phoenix"},
       {:cowboy, "~> 1.0.0"},
-      {:hackney, github: "benoitc/hackney"},
-      {:httpoison, "~> 0.3.2"},
+      {:httpoison, "~> 0.4.1"},
       {:timex, "~> 0.12.4"},
+      {:ex_rated, "~> 0.0.1"},
       {:socket, "~> 0.2.7"},
-      {:apex, "~> 0.3.0"},
-      {:ex_rated, "~> 0.0.1"}
+      {:apex, "~> 0.3.0", only: :test}
     ]
   end
 end

@@ -4,7 +4,6 @@ config :phoenix, DmrWatch.Router,
   port: System.get_env("PORT") || 4000,
   ssl: false,
   host: "localhost",
-  code_reload: true,
   cookies: true,
   consider_all_requests_local: true,
   session_key: "_dmr_watch_key",
@@ -12,3 +11,6 @@ config :phoenix, DmrWatch.Router,
 
 config :logger, :console,
   level: :debug
+
+config :phoenix, :code_reloader,
+  enabled: true

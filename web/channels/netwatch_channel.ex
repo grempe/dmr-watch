@@ -12,9 +12,13 @@ defmodule DmrWatch.NetwatchChannel do
   for the requested topic
   """
   def join(socket, "transmit", message) do
-#    IO.puts "JOIN #{socket.channel}:#{socket.topic}"
     reply socket, "join", %{status: "connected"}
 #    broadcast socket, "tx:in_progress", %{tx: Timex.DateFormat.format!(Timex.Date.local, "{ISO}")}
+    {:ok, socket}
+  end
+
+  def join(socket, "status", message) do
+    reply socket, "join", %{status: "connected"}
     {:ok, socket}
   end
 

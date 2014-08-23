@@ -12,6 +12,7 @@ defmodule Geocoder do
   """
 
   require Logger
+  alias Poison, as: JSON
 
   @user_agent [ {"User-agent", "Elixir DmrWatch"} ]
   # FIXME : Put in config or env var.
@@ -68,19 +69,18 @@ defmodule Geocoder do
   end
 
   defp parse_response_body(body) do
-    use Jazz
-    case JSON.decode!(body) do
-      %{"results" => [], "status" => "OVER_QUERY_LIMIT"} ->
+    case JSON.decode(body) do
+      {:ok, %{"results" => [], "status" => "OVER_QUERY_LIMIT"}} ->
         {:error, :over_query_limit}
-      %{"results" => [], "status" => "ZERO_RESULTS"} ->
+      {:ok, %{"results" => [], "status" => "ZERO_RESULTS"}} ->
         {:error, :zero_results}
-      %{"results" => [], "status" => "REQUEST_DENIED"} ->
+      {:ok, %{"results" => [], "status" => "REQUEST_DENIED"}} ->
         {:error, :request_denied}
-      %{"results" => [], "status" => "INVALID_REQUEST"} ->
+      {:ok, %{"results" => [], "status" => "INVALID_REQUEST"}} ->
         {:error, :invalid_request}
-      %{"results" => [], "status" => "UNKNOWN_ERROR"} ->
+      {:ok, %{"results" => [], "status" => "UNKNOWN_ERROR"}} ->
         {:error, :unknown_error}
-      %{"results" => results, "status" => "OK"} ->
+      {:ok, %{"results" => results, "status" => "OK"}} ->
         {:ok, Enum.at(results, 0)}
     end
   end

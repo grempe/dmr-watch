@@ -2,6 +2,14 @@
   <div id="map-canvas" class="col-xs-12"></div>
 </div>
 
+<div id="server-status-row" class="row">
+  <div id="server-status-col" class="col-xs-12">
+    <p id='server-status-text' class='h4 text-primary'>OK</p>
+  </div>
+</div>
+
 <div class="row">
-  <div id="transmissions" class="col-xs-12"><p id='tx-placeholder' class='h4 text-primary'>Connecting...</p></div>
+  <div id="transmissions" class="col-xs-12">
+    <p id='tx-placeholder' class='h4 text-primary'>Connecting...</p>
+  </div>
 </div>

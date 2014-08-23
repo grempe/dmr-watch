@@ -16,7 +16,7 @@ defmodule DmrWatch do
       worker(Task, [ fn -> Netwatch.fetch_every end ], id: :netwatch_fetch_every)
     ]
 
-    opts = [strategy: :one_for_one, name: DmrWatch.Supervisor]
+    opts = [strategy: :one_for_one, max_restarts: 1000, name: DmrWatch.Supervisor]
 
     # The following was an idea by chrismccord.  start/2 is expected to return {:ok, pid}
     # or things will blow up.  I needed to register the GenEvent handler after the supervisor

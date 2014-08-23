@@ -72,27 +72,32 @@ defmodule Netwatch do
   @user_agent [ {"User-agent", "Elixir DmrWatch"} ]
 
   def fetch do
-    netwatch_url
-    |> HTTPoison.get(@user_agent)
-    |> handle_response
+    try do
+      case HTTPoison.get(netwatch_url, @user_agent) do
+        %HTTPoison.Response{status_code: 200, body: body} ->
+          :ok = GenEvent.sync_notify(:netwatch_event_manager, {:status, ""})
+          {:ok, extract_sections(body)}
+        %HTTPoison.Response{status_code: ___, body: body} ->
+          {:error, body}
+      end
+    rescue
+      error in [HTTPoison.HTTPError, HTTPoison.Error] ->
+        # Exit cleanly so we don't kill the Phoenix supervisor.
+        # Periodic errors retrieving data from external CBridge are to be expected.
+        Logger.error "Netwatch.fetch : Error retrieving data from CBridge. Try again next time. : #{error.message}"
+        :ok = GenEvent.sync_notify(:netwatch_event_manager, {:status, "Oops! The CBridge Server is not available. Will try again soon."})
+        exit(:normal)
+    end
   end
 
   def fetch_every(frequency_in_ms \\ 1000) when is_integer(frequency_in_ms) do
-    fetch
     :timer.sleep(frequency_in_ms)
+    fetch
     fetch_every(frequency_in_ms)
   end
 
   defp netwatch_url do
     "http://107.170.211.99:42420/data.txt?param=ajaxminimalnetwatch"
-  end
-
-  defp handle_response(%{status_code: 200, body: body})  do
-    {:ok, extract_sections(body)}
-  end
-
-  defp handle_response(%{status_code: ___, body: body}) do
-    {:error, body}
   end
 
   defp extract_sections(body) do
