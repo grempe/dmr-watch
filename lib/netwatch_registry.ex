@@ -31,7 +31,7 @@ defmodule NetwatchRegistry do
     Agent.get(bucket, &HashDict.has_key?(&1, key))
   end
 
-  def new?(bucket \\ @default_bucket, key) do
+  def new?(key) do
     !duplicate?(key)
   end
 
@@ -49,7 +49,7 @@ defmodule NetwatchRegistry do
   @doc """
   Flush all `keys` in the `bucket` by iterating over each and deleting each.
   """
-  def flush(bucket \\ @default_bucket) do
+  def flush do
     keys
     |> Enum.map(&delete(&1))
   end

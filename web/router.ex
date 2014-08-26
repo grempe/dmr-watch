@@ -5,6 +5,6 @@ defmodule DmrWatch.Router do
   plug Plug.Static, at: "/static", from: :dmr_watch
   get "/", DmrWatch.PageController, :index, as: :page
 
-  channel "netwatch", DmrWatch.NetwatchChannel
+  channel "dmrwatch", DmrWatch.DmrWatchChannel
 
 end

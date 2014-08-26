@@ -75,7 +75,11 @@ defmodule Netwatch do
     try do
       case HTTPoison.get(netwatch_url, @user_agent) do
         %HTTPoison.Response{status_code: 200, body: body} ->
-          :ok = GenEvent.sync_notify(:netwatch_event_manager, {:status, ""})
+          :ok = GenEvent.sync_notify(:dmrwatch_event_manager, {:server, :status, nil})
+
+  # FIXME : time should be sent by a standalone process. And is time off from my watch? norcal list is also off by 15 sec. Could time on cbridge server be off by 15 seconds?
+  # FIXME : :dmrwatch_event_manager should be a env var.
+          :ok = GenEvent.sync_notify(:dmrwatch_event_manager, {:server, :time, Timex.DateFormat.format!(Timex.Date.local, "{ISO}")})
           {:ok, extract_sections(body)}
         %HTTPoison.Response{status_code: ___, body: body} ->
           {:error, body}
@@ -85,7 +89,7 @@ defmodule Netwatch do
         # Exit cleanly so we don't kill the Phoenix supervisor.
         # Periodic errors retrieving data from external CBridge are to be expected.
         Logger.error "Netwatch.fetch : Error retrieving data from CBridge. Try again next time. : #{error.message}"
-        :ok = GenEvent.sync_notify(:netwatch_event_manager, {:status, "Oops! The CBridge Server is not available. Will try again soon."})
+        :ok = GenEvent.sync_notify(:dmrwatch_event_manager, {:server, :status, "Server Error : The c-Bridge server is unavailable. Realtime data is paused."})
         exit(:normal)
     end
   end
@@ -105,7 +109,7 @@ defmodule Netwatch do
     |> Enum.map(&extract_records(&1))
     |> List.flatten
     |> Enum.filter(fn(nw_struct) -> struct_is_valid?(nw_struct) end )
-    |> Enum.map(&notify_netwatch_event_manager(&1))
+    |> Enum.map(&notify_dmrwatch_event_manager(&1))
   end
 
   defp extract_records(section) do
@@ -120,7 +124,7 @@ defmodule Netwatch do
     |> Enum.map(&generate_struct_hash_id(&1))
     |> Enum.filter(fn(nw_struct) ->
                      case nw_struct do
-                       %Netwatch{time_peer_radio_hash_id: time_peer_radio_hash_id} = nw_struct ->
+                       %Netwatch{time_peer_radio_hash_id: time_peer_radio_hash_id} ->
                          NetwatchRegistry.new?(time_peer_radio_hash_id)
                        _ ->
                          false
@@ -129,11 +133,11 @@ defmodule Netwatch do
     |> Enum.map(&register_time_peer_radio_hash_id(&1))
   end
 
-  defp struct_is_valid?(%Netwatch{radio_id: radio_id, peer_id: peer_id} = nw_struct) when radio_id > 0 and peer_id > 0 do
+  defp struct_is_valid?(%Netwatch{radio_id: radio_id, peer_id: peer_id}) when radio_id > 0 and peer_id > 0 do
     true
   end
 
-  defp struct_is_valid?(%Netwatch{radio_id: radio_id, peer_id: peer_id} = nw_struct) when radio_id == 0 or peer_id == 0 do
+  defp struct_is_valid?(%Netwatch{radio_id: radio_id, peer_id: peer_id}) when radio_id == 0 or peer_id == 0 do
     false
   end
 
@@ -275,7 +279,7 @@ defmodule Netwatch do
       {:ok, []} ->
         # cached empty result
         {:error, []}
-      {:error, reason} ->
+      {:error, _reason} ->
         {:error, []}
       {:rate_limited, []} ->
         {:error, []}
@@ -299,8 +303,8 @@ defmodule Netwatch do
     nw_struct
   end
 
-  defp notify_netwatch_event_manager(%Netwatch{} = nw_struct) do
-    :ok = GenEvent.sync_notify(:netwatch_event_manager, nw_struct)
+  defp notify_dmrwatch_event_manager(%Netwatch{} = nw_struct) do
+    :ok = GenEvent.sync_notify(:dmrwatch_event_manager, nw_struct)
     nw_struct
   end
 

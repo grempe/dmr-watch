@@ -57,6 +57,10 @@ code {
   margin-bottom: 25px;
 }
 
-.msg-container {
+.container .msg-container {
   margin-bottom: 25px;
+  padding-bottom: 10px;
+  border-bottom: silver;
+  border-bottom-style: dotted;
+  border-bottom-width: 1px;
 }

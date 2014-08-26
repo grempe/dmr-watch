@@ -25,7 +25,15 @@ $( document ).ready(function() {
       var label = "text-muted"
       if (message.loss_percentage > 1) {label = "label label-warning"}
       if (message.loss_percentage > 5) {label = "label label-danger"}
-      str += "<span class='small " + label + "'>Packet Loss (%) : " + message.loss_percentage + "</span>"
+      str += "<span class='small " + label + "'>Packet Loss (%) : " + message.loss_percentage + "</span><br />"
+    }
+
+    if (!message.radio_callsign){
+      str += "<span class='small label label-warning'>No Radio Callsign</span><br />"
+    }
+
+    if (!message.radio_location && !message.radio_formatted_address){
+      str += "<span class='small label label-warning'>No Radio Location</span><br />"
     }
 
     return str
@@ -103,7 +111,7 @@ $( document ).ready(function() {
 
     if (message.peer_latitude && message.peer_longitude) {
       var markertitle = message.peer_callsign || message.peer_id
-      addGoogleMapPeerMarker(message.peer_latitude , message.peer_longitude, markertitle);
+      addGoogleMapMarker(message.peer_latitude, message.peer_longitude, 'peer', markertitle);
     }
 
     if (message.radio_latitude && message.radio_longitude) {
@@ -115,51 +123,68 @@ $( document ).ready(function() {
         var markertitle = message.radio_id
       }
 
-      addGoogleMapRadioMarker(message.radio_latitude , message.radio_longitude, markertitle);
+      addGoogleMapMarker(message.radio_latitude, message.radio_longitude, 'radio', markertitle);
     }
 
     return(msgContainer);
   }
 
-  function addGoogleMapPeerMarker(lat, lng, title){
-    var loc = new google.maps.LatLng(lat , lng);
-    var icon = '/static/images/radio-station-2.png'
+  function addGoogleMapMarker(lat, lng, type, title){
+    var loc = new google.maps.LatLng(lat, lng);
+    if (type == 'peer') {
+      var icon = '/static/images/radio-station-2.png'
+    } else if (type == 'radio') {
+      var icon = '/static/images/male-2.png'
+    }
     addMarker(loc, title, icon);
   }
 
-  function addGoogleMapRadioMarker(lat, lng, title){
-    var loc = new google.maps.LatLng(lat , lng);
-    var icon = '/static/images/male-2.png'
-    addMarker(loc, title, icon);
-  }
+  // function addGoogleMapPeerMarker(lat, lng, title){
+  //   var loc = new google.maps.LatLng(lat, lng);
+  //   var icon = '/static/images/radio-station-2.png'
+  //   addMarker(loc, title, icon);
+  // }
+
+  // function addGoogleMapRadioMarker(lat, lng, title){
+  //   var loc = new google.maps.LatLng(lat, lng);
+  //   var icon = '/static/images/male-2.png'
+  //   addMarker(loc, title, icon);
+  // }
 
   // WEBSOCKETS
-  socket.join("netwatch", "transmit", {}, function(chan){
+  socket.join("dmrwatch", "server", {}, function(chan){
 
     chan.on("join", function(message){
-      $("#tx-placeholder").html("<p>Connected. Waiting for DMR transmissions.</p>");
-      $("#tx-placeholder").fadeIn();
+      console.log(message)
+      $("#server-status").text("Connected. Waiting for DMR transmissions.");
+      $("#server-status").fadeIn();
     });
 
     chan.on("tx:in_progress", function(message){
       console.log(message)
-  //    var parsed = $.parseJSON(message);
-  //    console.log(parsed);
-      $("#tx-placeholder").fadeOut()
-      $("#transmissions").prepend(netwatchTxTemplate(message));
+      $("#tx-in-progress-placeholder").fadeOut()
+      $("#tx-in-progress").prepend(netwatchTxTemplate(message));
     });
 
-  });
-
-  socket.join("netwatch", "status", {}, function(chan){
-
-    chan.on("join", function(message){
-      $("#server-status-row").fadeOut();
+    chan.on("tx:history", function(message){
+      console.log(message)
     });
 
-    chan.on("server:update", function(message){
-      $("#server-status-col").html("<p id='server-status-text' class='h4 text-danger'>" + message + "</p>");
-      $("#server-status-row").fadeIn();
+    chan.on("time:utc_time", function(message){
+      var server_utc_time = moment(message)
+      console.log(message)
+      $("#server-time").text(server_utc_time.format("MM/D/YYYY HH:mm:ss Z"));
+    });
+
+    chan.on("status:message", function(message){
+      console.log(message)
+      if (message) {
+        $("#server-status").text(message);
+        $("#server-status").fadeIn();
+      } else {
+        $("#server-status").text("");
+        $("#server-status").fadeOut();
+      }
     });
 
   });

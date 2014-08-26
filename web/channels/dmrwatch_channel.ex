@@ -1,4 +1,4 @@
-defmodule DmrWatch.NetwatchChannel do
+defmodule DmrWatch.DmrWatchChannel do
   use Phoenix.Channel
 
   @doc """
@@ -11,13 +11,7 @@ defmodule DmrWatch.NetwatchChannel do
   {:error, socket, reason} to deny subscription/broadcast on this channel
   for the requested topic
   """
-  def join(socket, "transmit", message) do
-    reply socket, "join", %{status: "connected"}
-#    broadcast socket, "tx:in_progress", %{tx: Timex.DateFormat.format!(Timex.Date.local, "{ISO}")}
-    {:ok, socket}
-  end
-
-  def join(socket, "status", message) do
+  def join(socket, "server", _message) do
     reply socket, "join", %{status: "connected"}
     {:ok, socket}
   end

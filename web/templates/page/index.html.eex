@@ -2,14 +2,21 @@
   <div id="map-canvas" class="col-xs-12"></div>
 </div>
 
-<div id="server-status-row" class="row">
-  <div id="server-status-col" class="col-xs-12">
-    <p id='server-status-text' class='h4 text-primary'>OK</p>
+<div id="server-row" class="row">
+  <div id="server-time-col" class="col-xs-4">
+    <p id='server-time' class='h4 text-muted'></p>
+  </div>
+  <div id="server-status-col" class="col-xs-8">
+    <p id='server-status' class='h4 text-muted'></p>
   </div>
 </div>
 
 <div class="row">
-  <div id="transmissions" class="col-xs-12">
-    <p id='tx-placeholder' class='h4 text-primary'>Connecting...</p>
+  <div id="tx-in-progress" class="col-xs-12">
+    <p id='tx-in-progress-placeholder' class='h4 text-primary'>Awaiting next DMR transmission to display.</p>
+  </div>
+
+  <div id="tx-history" class="col-xs-12">
+    <p>OLD skool</p>
   </div>
 </div>
