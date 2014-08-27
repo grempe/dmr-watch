@@ -17,14 +17,14 @@ defmodule DmrMarcRadioImporter do
 
   @user_agent [ {"User-agent", "Elixir DmrWatch"} ]
 
-  def fetch_every(frequency_in_ms \\ 60_000) when is_integer(frequency_in_ms) do
+  def fetch_every(frequency_in_ms \\ 3_600_000) when is_integer(frequency_in_ms) do
     fetch
     :timer.sleep(frequency_in_ms)
     fetch_every(frequency_in_ms)
   end
 
   def fetch do
-    case ExRated.check_rate("dmr-marc-radio-importer", 3_600_000, 60) do
+    case ExRated.check_rate("dmr-marc-radio-importer", 3_600_000, 4) do
       {:ok, _counter} ->
         http_get_html_radio_data_file
       {:fail, limit} ->
@@ -54,6 +54,8 @@ defmodule DmrMarcRadioImporter do
     |> split_into_rows
     |> remove_table_header_row
     |> Enum.map(&split_row_into_columns(&1))
+    |> Enum.map(&convert_row_to_struct(&1))
+    |> Enum.filter(fn(dmr_struct) -> if dmr_struct, do: true, else: false end )  # filter nil struct
     |> Enum.map(&cache_each_data_row(&1))
     {:ok, result}
   end
@@ -84,19 +86,35 @@ defmodule DmrMarcRadioImporter do
 
   defp split_row_into_columns(row) do
     row
+    |> String.replace("<td></td>", "\t")
+    |> String.replace("<td> </td>", "\t")
     |> String.replace("<td>", "")
-    |> String.split("</td>", trim: true)
+    |> String.replace("</td>", "\t")
+    |> String.replace(~r/\t$/, "")
+    |> String.split("\t", parts: :infinity)
   end
 
-  defp cache_each_data_row([]) do
-    []
+  defp convert_row_to_struct([radio_id, callsign, name, city, state, country, home_repeater, remarks]) do
+    dmr_struct = %DmrMarcRadio{radio_id: String.to_integer(radio_id),
+                  callsign: String.strip(callsign),
+                  name: String.strip(name),
+                  city: String.strip(city),
+                  state: String.strip(state),
+                  country: String.strip(country),
+                  home_repeater: String.strip(home_repeater),
+                  remarks: String.strip(remarks)
+                }
+    dmr_struct
   end
 
-  defp cache_each_data_row(row) when is_list(row) do
-    [id|data] = row
-    id_int = String.to_integer(id)
-    :ok = DmrMarcRadioCache.put(id, data)
-    row
+  defp convert_row_to_struct(row) do
+    Logger.error("convert_row_to_struct : bad row data : #{row}")
+    nil
+  end
+
+  defp cache_each_data_row(%DmrMarcRadio{} = dmr_marc_struct) do
+    :ok = DmrMarcRadioCache.put(dmr_marc_struct.radio_id, dmr_marc_struct)
+    dmr_marc_struct
   end
 
 end

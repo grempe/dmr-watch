@@ -4,7 +4,7 @@ defmodule DmrMarcRadioCache do
   use Timex
 
   @default_bucket :dmr_marc_radio_cache
-  @default_cache_time_in_hours 1_000_000 # forever
+  @default_cache_time_in_hours 24
 
   @doc """
   Starts a new bucket.
@@ -19,10 +19,10 @@ defmodule DmrMarcRadioCache do
   def get(bucket \\ @default_bucket, key) do
     case Agent.get(bucket, &HashDict.get(&1, key)) do
       {value, time} ->
-        #Logger.debug "DmrMarcRadioCache.get : cache hit : #{URI.decode(key)} : cached #{Timex.Time.elapsed(time, :secs)} seconds ago."
+        #Logger.debug "DmrMarcRadioCache.get : cache hit : #{key} : cached #{Timex.Time.elapsed(time, :secs)} seconds ago."
         {:ok, value}
       _ ->
-        Logger.debug "DmrMarcRadioCache.get : cache miss : #{URI.decode(key)}"
+        #Logger.debug "DmrMarcRadioCache.get : cache miss : #{key}"
         {:ok, :not_found}
     end
   end
@@ -62,7 +62,7 @@ defmodule DmrMarcRadioCache do
     case Agent.get(bucket, &HashDict.get(&1, key)) do
       {value, time} ->
         if Timex.Time.diff(Timex.Time.now, time, :hours) > @default_cache_time_in_hours do
-          Logger.debug "DmrMarcRadioCache.prune : deleting old key : #{URI.decode(key)} : cached #{Timex.Time.elapsed(time, :secs)} seconds ago."
+          Logger.debug "DmrMarcRadioCache.prune : deleting old key : #{key} : cached #{Timex.Time.elapsed(time, :secs)} seconds ago."
           delete(key)
         end
     end

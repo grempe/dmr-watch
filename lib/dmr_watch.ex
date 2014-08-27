@@ -14,8 +14,9 @@ defmodule DmrWatch do
       worker(DmrMarcRadioCache, [], id: :dmr_marc_radio_cache),
       worker(NetwatchRegistry, [], id: :netwatch_registry),
       worker(Task, [ fn -> GeocoderCache.prune_every end ], id: :geocoder_cache_prune),
-      worker(Task, [ fn -> DmrMarcRadioImporter.fetch_every end ], id: :dmr_marc_radio_importer_fetch_every)
-#      worker(Task, [ fn -> Netwatch.fetch_every end ], id: :dmrwatch_fetch_every)
+      worker(Task, [ fn -> DmrMarcRadioCache.prune_every end ], id: :dmr_marc_radio_cache_prune),
+      worker(Task, [ fn -> DmrMarcRadioImporter.fetch_every end ], id: :dmr_marc_radio_importer_fetch_every),
+      worker(Task, [ fn -> Netwatch.fetch_every end ], id: :dmrwatch_fetch_every)
     ]
 
     opts = [strategy: :one_for_one, max_restarts: 1000, name: DmrWatch.Supervisor]

@@ -36,30 +36,47 @@ $( document ).ready(function() {
       str += "<span class='small label label-warning'>No Radio Location</span><br />"
     }
 
+    if (message.dmr_marc_radio_callsign){
+      str += "<span class='small label label-success'>DMR-MARC Radio DB</span><br />"
+    } else {
+      str += "<span class='small label label-danger'>DMR-MARC Radio DB</span><br />"
+    }
+
     return str
   }
 
   var netwatchTxTemplateUserCol = function(message) {
     var str = ""
-    if (message.radio_callsign && message.radio_name){
-      str += "<a href='http://callook.info/" + message.radio_callsign + "' target=_blank>" + message.radio_callsign + "</a>&nbsp;&mdash;&nbsp;<span class='text-muted'>" + message.radio_name + "</span><br />"
-    }
 
-    if (message.radio_callsign && !message.radio_name){
+    if (message.dmr_marc_radio_callsign && message.dmr_marc_radio_name){
+      str += "<a href='http://callook.info/" + message.dmr_marc_radio_callsign + "' target=_blank>" + message.dmr_marc_radio_callsign + "</a>&nbsp;&mdash;&nbsp;<span class='text-muted'>" + message.dmr_marc_radio_name + "</span><br />"
+    } else if (message.radio_callsign && message.radio_name){
+      str += "<a href='http://callook.info/" + message.radio_callsign + "' target=_blank>" + message.radio_callsign + "</a>&nbsp;&mdash;&nbsp;<span class='text-muted'>" + message.radio_name + "</span><br />"
+    } else if (message.radio_callsign && !message.radio_name){
       str += "<a href='http://callook.info/" + message.radio_callsign + "' target=_blank>" + message.radio_callsign + "</a><br />"
     }
+
+    str += "<span class='small text-muted'>"
 
     if (message.radio_id){
       str += message.radio_id + "<br />"
     }
 
     if (message.radio_formatted_address){
-      str += message.radio_formatted_address
-    }
-
-    if (message.radio_location && !message.radio_formatted_address){
+      str += message.radio_formatted_address + "<br />"
+    } else if (message.radio_location) {
       str += message.radio_location
     }
+
+    if (message.dmr_marc_radio_home_repeater){
+      str += "Home Repeater: " + message.dmr_marc_radio_home_repeater + "<br />"
+    }
+
+    if (message.dmr_marc_radio_remarks){
+      str += "Remarks: " + message.dmr_marc_radio_remarks
+    }
+
+    str += "</span>"
 
     return str
   }
@@ -69,6 +86,8 @@ $( document ).ready(function() {
     if (message.peer_callsign){
       str += "<a href='http://callook.info/" + message.peer_callsign + "' target=_blank>" + message.peer_callsign + "</a><br />"
     }
+
+    str += "<span class='small text-muted'>"
 
     if (message.peer_id){
       str += message.peer_id + "<br />"
@@ -81,6 +100,8 @@ $( document ).ready(function() {
     if (message.peer_location && !message.peer_formatted_address){
       str += message.peer_location
     }
+
+    str += "</span>"
 
     return str
   }
@@ -115,7 +136,9 @@ $( document ).ready(function() {
     }
 
     if (message.radio_latitude && message.radio_longitude) {
-      if (message.radio_callsign && message.radio_name) {
+      if (message.dmr_marc_radio_callsign && message.dmr_marc_radio_name) {
+        var markertitle = message.dmr_marc_radio_callsign + " : " + message.dmr_marc_radio_name
+      } else if (message.radio_callsign && message.radio_name) {
         var markertitle = message.radio_callsign + " : " + message.radio_name
       } else if (message.radio_callsign) {
         var markertitle = message.radio_callsign
@@ -139,23 +162,11 @@ $( document ).ready(function() {
     addMarker(loc, title, icon);
   }
 
-  // function addGoogleMapPeerMarker(lat, lng, title){
-  //   var loc = new google.maps.LatLng(lat, lng);
-  //   var icon = '/static/images/radio-station-2.png'
-  //   addMarker(loc, title, icon);
-  // }
-
-  // function addGoogleMapRadioMarker(lat, lng, title){
-  //   var loc = new google.maps.LatLng(lat, lng);
-  //   var icon = '/static/images/male-2.png'
-  //   addMarker(loc, title, icon);
-  // }
-
   // WEBSOCKETS
   socket.join("dmrwatch", "server", {}, function(chan){
 
     chan.on("join", function(message){
-      console.log(message)
+      // console.log(message)
       $("#server-status").text("Connected. Waiting for DMR transmissions.");
       $("#server-status").fadeIn();
     });
@@ -172,12 +183,12 @@ $( document ).ready(function() {
 
     chan.on("time:utc_time", function(message){
       var server_utc_time = moment(message)
-      console.log(message)
+      //console.log(message)
       $("#server-time").text(server_utc_time.format("MM/D/YYYY HH:mm:ss Z"));
     });
 
     chan.on("status:message", function(message){
-      console.log(message)
+      //console.log(message)
       if (message) {
         $("#server-status").text(message);
         $("#server-status").fadeIn();

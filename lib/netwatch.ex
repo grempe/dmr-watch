@@ -63,6 +63,13 @@ defmodule Netwatch do
             radio_latitude: nil,
             radio_longitude: nil,
             radio_formatted_address: nil,
+            dmr_marc_radio_callsign: nil,
+            dmr_marc_radio_name: nil,
+            dmr_marc_radio_city: nil,
+            dmr_marc_radio_state: nil,
+            dmr_marc_radio_country: nil,
+            dmr_marc_radio_home_repeater: nil,
+            dmr_marc_radio_remarks: nil,
             bridge_group_name: "",
             rssi_in_dbm: 0.0,
             site_name: "",
@@ -119,6 +126,7 @@ defmodule Netwatch do
     |> Enum.filter(fn(nw_struct) -> if nw_struct, do: true, else: false end )  # filter nil nw_struct
     |> Enum.map(&split_peer_alias(&1))
     |> Enum.map(&split_radio_alias(&1))
+    |> Enum.map(&lookup_dmr_marc_radio_data(&1))
     |> Enum.map(&geocode_location(:radio, &1))
     |> Enum.map(&geocode_location(:peer, &1))
     |> Enum.map(&generate_struct_hash_id(&1))
@@ -236,39 +244,76 @@ defmodule Netwatch do
                            radio_id: convert_to_integer(radio_id)}
   end
 
-  defp geocode_location(:radio, %Netwatch{} = nw_struct) do
-    case nw_struct do
-      %Netwatch{radio_location: ""} = nw_struct ->
+  defp lookup_dmr_marc_radio_data(%Netwatch{radio_id: radio_id} = nw_struct) when radio_id > 0 do
+    case DmrMarcRadioCache.get(radio_id) do
+      {:ok, :not_found} ->
+        Logger.warn "lookup_dmr_marc_radio_id : NOT FOUND : #{radio_id}"
         nw_struct
-      %Netwatch{radio_location: nil} = nw_struct ->
-        nw_struct
-      %Netwatch{radio_location: location} = nw_struct ->
-        case geocode_location_extract(location) do
-          {:ok, [fa, lat, lng]} ->
-            %Netwatch{ nw_struct | radio_formatted_address: fa,
-                                   radio_latitude: lat,
-                                   radio_longitude: lng}
-          {:error, []} ->
-            nw_struct
-        end
+      {:ok, data} ->
+        new_nw_struct = %Netwatch{ nw_struct | dmr_marc_radio_callsign:      data.callsign,
+                                               dmr_marc_radio_name:          data.name,
+                                               dmr_marc_radio_city:          data.city,
+                                               dmr_marc_radio_state:         data.state,
+                                               dmr_marc_radio_country:       data.country,
+                                               dmr_marc_radio_home_repeater: data.home_repeater,
+                                               dmr_marc_radio_remarks:       data.remarks }
+        new_nw_struct
     end
   end
 
-  defp geocode_location(:peer, %Netwatch{} = nw_struct) do
+  defp lookup_dmr_marc_radio_data(%Netwatch{radio_id: radio_id} = nw_struct) when radio_id == 0 do
+    # This is a default struct.  Just return it.
+    nw_struct
+  end
+
+  defp geocode_location(:radio, %Netwatch{radio_location: ""} = nw_struct) do
+    nw_struct
+  end
+
+  defp geocode_location(:radio, %Netwatch{radio_location: nil} = nw_struct) do
+    nw_struct
+  end
+
+  defp geocode_location(:radio, %Netwatch{} = nw_struct) do
+    location = choose_dmr_marc_or_extracted_location(nw_struct)
+
+    case geocode_location_extract(location) do
+      {:ok, [fa, lat, lng]} ->
+        %Netwatch{ nw_struct | radio_formatted_address: fa,
+                               radio_latitude: lat,
+                               radio_longitude: lng}
+      {:error, []} ->
+        nw_struct
+    end
+  end
+
+  defp choose_dmr_marc_or_extracted_location(%Netwatch{} = nw_struct) do
     case nw_struct do
-      %Netwatch{peer_location: ""} = nw_struct ->
+      %Netwatch{dmr_marc_radio_city: nil, dmr_marc_radio_state: nil, dmr_marc_radio_country: nil, radio_location: radio_location} ->
+        Logger.error "choose_dmr_marc_or_extracted_location : radio_location : #{radio_location}"
+        radio_location
+      %Netwatch{dmr_marc_radio_city: dmr_marc_radio_city, dmr_marc_radio_state: dmr_marc_radio_state, dmr_marc_radio_country: dmr_marc_radio_country} ->
+        Logger.debug "choose_dmr_marc_or_extracted_location : DMR-MARC location : #{dmr_marc_radio_city}, #{dmr_marc_radio_state}, #{dmr_marc_radio_country}"
+        "#{dmr_marc_radio_city}, #{dmr_marc_radio_state}, #{dmr_marc_radio_country}"
+    end
+  end
+
+  defp geocode_location(:peer, %Netwatch{peer_location: ""} = nw_struct) do
+    nw_struct
+  end
+
+  defp geocode_location(:peer, %Netwatch{peer_location: nil} = nw_struct) do
+    nw_struct
+  end
+
+  defp geocode_location(:peer, %Netwatch{peer_location: location} = nw_struct) do
+    case geocode_location_extract(location) do
+      {:ok, [fa, lat, lng]} ->
+        %Netwatch{ nw_struct | peer_formatted_address: fa,
+                               peer_latitude: lat,
+                               peer_longitude: lng}
+      {:error, []} ->
         nw_struct
-      %Netwatch{peer_location: nil} = nw_struct ->
-        nw_struct
-      %Netwatch{peer_location: location} = nw_struct ->
-        case geocode_location_extract(location) do
-          {:ok, [fa, lat, lng]} ->
-            %Netwatch{ nw_struct | peer_formatted_address: fa,
-                                   peer_latitude: lat,
-                                   peer_longitude: lng}
-          {:error, []} ->
-            nw_struct
-        end
     end
   end
 
@@ -276,12 +321,7 @@ defmodule Netwatch do
     case Geocoder.lookup(location) do
       {:ok, %{"formatted_address" => fa, "geometry" => %{"location" => %{"lat" => lat, "lng" => lng} } } } ->
         {:ok, [fa, lat, lng]}
-      {:ok, []} ->
-        # cached empty result
-        {:error, []}
-      {:error, _reason} ->
-        {:error, []}
-      {:rate_limited, []} ->
+      _ ->
         {:error, []}
     end
   end

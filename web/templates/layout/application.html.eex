@@ -127,9 +127,10 @@
     <div class="footer">
       <div class="container">
         <div class="row">
-          <p class="col-xs-10 text-muted">&copy; Copyright 2014 - Glenn Rempe - <a href='http://callook.info/K6GDR' target='_blank'>K6GDR</a> - <a href='mailto:glenn@rempe.us'>glenn@rempe.us</a></p>
-          <p class="col-xs-2 text-muted">
-          <a href="https://github.com/grempe/dmr-watch" target='_blank'>GitHub</a>&nbsp;|&nbsp;<a href="https://github.com/grempe/dmr-watch/issues" target='_blank'>File a Bug</a>
+          <p class="col-xs-8 text-muted">&copy; Copyright 2014 - Glenn Rempe - <a href='http://callook.info/K6GDR' target='_blank'>K6GDR</a> - <a href='mailto:glenn@rempe.us'>glenn@rempe.us</a></p>
+          <p class="col-xs-4 text-muted">
+
+          <a href="https://github.com/grempe/dmr-watch" target='_blank'>GitHub</a>&nbsp;|&nbsp;<a href="https://github.com/grempe/dmr-watch/issues" target='_blank'>File a Bug</a>&nbsp;|&nbsp;<a href="http://www.dmr-marc.net/contact.html" target='_blank'>Add/Update DMR-MARC Data</a>
           </p>
         </div>
       </div>
