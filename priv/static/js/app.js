@@ -132,8 +132,15 @@ $( document ).ready(function() {
     return(msgContainer);
   }
 
-  function addGoogleMapMarker(lat, lng, type, title, radius){
-    var loc = new google.maps.LatLng(lat, lng);
+  function addGoogleMapMarker(lat, lng, type, title, radius, linkedLat, linkedLng){
+    var location = new google.maps.LatLng(lat, lng);
+
+    if (linkedLat && linkedLng) {
+      var linkedLocation = new google.maps.LatLng(linkedLat, linkedLng);
+    } else {
+      var linkedLocation = null;
+    }
+
     if (type == 'peer') {
       var icon = '/static/images/radio-station-2.png'
     } else if (type == 'radio') {
@@ -141,7 +148,7 @@ $( document ).ready(function() {
     } else if (type == 'observer') {
       var icon = '/static/images/downloadicon.png'
     }
-    addMarker(loc, title, icon, radius);
+    addMarker(location, title, icon, radius, linkedLocation);
   }
 
   function getGeoLocation() {
@@ -158,7 +165,7 @@ $( document ).ready(function() {
     window.myGeoError = null;
     window.myLatitude = position.coords.latitude;
     window.myLongitude = position.coords.longitude;
-    addGoogleMapMarker(position.coords.latitude, position.coords.longitude, "observer", "Me.", 0 );
+    addGoogleMapMarker(position.coords.latitude, position.coords.longitude, "observer", "Me.", 0, null, null);
   }
 
   function geoError(error) {
@@ -197,12 +204,12 @@ $( document ).ready(function() {
         var radioMarkerTitle = message.radio_id
       }
 
-      addGoogleMapMarker(message.radio_latitude, message.radio_longitude, 'radio', radioMarkerTitle, 10000);
+      addGoogleMapMarker(message.radio_latitude, message.radio_longitude, 'radio', radioMarkerTitle, 10000, null, null);
     }
 
     if (message.peer_latitude && message.peer_longitude) {
       var peerMarkerTitle = message.peer_callsign || message.peer_id
-      addGoogleMapMarker(message.peer_latitude, message.peer_longitude, 'peer', peerMarkerTitle, 75000);
+      addGoogleMapMarker(message.peer_latitude, message.peer_longitude, 'peer', peerMarkerTitle, 75000, message.radio_latitude, message.radio_longitude);
     }
   }
 

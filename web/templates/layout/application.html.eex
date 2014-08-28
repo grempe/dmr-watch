@@ -173,7 +173,7 @@
       // addMarker(loc, title, icon, radius);
 
       var markers=[];
-      function addMarker(location, title, icon, radius) {
+      function addMarker(location, title, icon, radius, linkedLocation) {
 
         // Don't add duplicate markers. Determine this
         // by hashing the params to this function and storing
@@ -181,7 +181,8 @@
         // want to add a marker to see if its already added.
         // Using a SHA1 hash is a bit of overkill but it does
         // the job well.
-        var hash = CryptoJS.SHA1(location + title + icon + radius);
+        var hash = CryptoJS.SHA1(location + title + icon + radius + linkedLocation);
+
         if(!markers[hash])
         {
           markers[hash]=true;
@@ -213,6 +214,25 @@
               zIndex: zIndex
             });
             circle.bindTo('center', marker, 'position');
+          }
+
+          if (linkedLocation) {
+            var transmitCoordinates = [
+              location,
+              linkedLocation
+            ];
+
+            var transmitPath = new google.maps.Polyline({
+              path: transmitCoordinates,
+              geodesic: true,
+              strokeColor: '#FF3300',
+              strokeOpacity: 1.0,
+              strokeWeight: 1,
+              zIndex: 99
+            });
+
+            transmitPath.setMap(this.map);
+
           }
 
         }
