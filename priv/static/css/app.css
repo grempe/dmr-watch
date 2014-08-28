@@ -43,11 +43,6 @@ body > .container {
   margin-bottom: 5px;
 }
 
-.footer > .container {
-  padding-right: 15px;
-  padding-left: 15px;
-}
-
 code {
   font-size: 80%;
 }
@@ -63,4 +58,9 @@ code {
   border-bottom: silver;
   border-bottom-style: dotted;
   border-bottom-width: 1px;
+}
+
+.footer > .container {
+  padding-right: 15px;
+  padding-left: 15px;
 }

@@ -33,15 +33,17 @@
 
     <div class="navbar navbar-default navbar-fixed-top navbar-inverse" role="navigation">
       <div class="container">
+
         <div class="navbar-header">
           <span class="navbar-brand">DMR Watch</span>
           <p class="navbar-text">Realtime Monitoring of the <a href="http://www.norcaldmr.org/" target="_blank">NorCal DMR</a> Amateur Radio Network</p>
         </div>
-      </div>
-    </div>
 
-    <!-- Begin page content -->
+      </div> <!-- .container -->
+    </div> <!-- .navbar -->
+
     <div class="container">
+
       <!-- Nav tabs -->
       <ul id="main-tablist" class="nav nav-pills" role="tablist">
         <li class="active"><a href="#onair" role="tab" data-toggle="tab">ON AIR</a></li>
@@ -49,19 +51,20 @@
         <li><a href="#donate" role="tab" data-toggle="tab">Donate</a></li>
       </ul>
 
-      <!-- Tab panes -->
       <div class="tab-content">
+
         <div class="tab-pane fade in active" id="onair">
           <%= @inner %>
-        </div>
+        </div> <!-- .tab-pane -->
 
         <div class="tab-pane fade" id="about">
           <div class="page-header">
             <h1>About <small>DMR Watch</small></h1>
           </div>
-        </div>
+        </div>  <!-- .tab-pane -->
 
         <div class="tab-pane fade" id="donate">
+
           <div class="page-header">
             <h1>Please Donate <small>you'll enjoy it.</small></h1>
           </div>
@@ -84,65 +87,65 @@
           <br />
 
           <div class="row">
+
             <div class="col-xs-3">
               <p class="h4">Gittip:</p>
               <script data-gittip-username="grempe" src="//gttp.co/v1.js"></script>
-            </div>
+            </div> <!-- .col -->
+
             <div class="col-xs-3">
               <p class="h4">Paypal:</p>
               <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-              <input type="hidden" name="cmd" value="_s-xclick">
-              <input type="hidden" name="hosted_button_id" value="56XJZTX7B422J">
-              <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-              <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
+                <input type="hidden" name="cmd" value="_s-xclick">
+                <input type="hidden" name="hosted_button_id" value="56XJZTX7B422J">
+                <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
+                <img alt="" border="0" src="https://www.paypalobjects.com/en_US/i/scr/pixel.gif" width="1" height="1">
               </form>
-            </div>
-            <div class="col-xs-3">
-              <p class="h4">Bitcoin:</p>
-              <div style="font-size:16px;margin:0 auto;width:300px" class="blockchain-btn" data-address="1GqP6HS35nbgSjoYaY6JWGhznxzujC6sNN" data-shared="false">
-                <div class="blockchain stage-begin">
-                    <img src="https://blockchain.info//Resources/buttons/donate_64.png"/>
-                </div>
-                <div class="blockchain stage-loading" style="text-align:center">
-                    <img src="https://blockchain.info//Resources/loading-large.gif"/>
-                </div>
-                <div class="blockchain stage-ready">
-                     <p align="center">Please Donate To Bitcoin Address: <b>[[address]]</b></p>
-                     <p align="center" class="qr-code"></p>
-                </div>
-                <div class="blockchain stage-paid">
-                     Donation of <b>[[value]] BTC</b> Received. Thank You.
-                </div>
-                <div class="blockchain stage-error">
-                    <font color="red">[[error]]</font>
-                </div>
-              </div>
-            </div>
-          </div>
+            </div> <!-- .col -->
 
-      </div> <!-- tab-content -->
-    </div> <!-- container -->
+            <div class="col-xs-3">
+
+              <p class="h4">Bitcoin:</p>
+
+              <div>
+                <a href="bitcoin:1GqP6HS35nbgSjoYaY6JWGhznxzujC6sNN?amount=0.5&label=Glenn%20Rempe">
+                <img src="/static/images/bitcoin-1GqP6HS35nbgSjoYaY6JWGhznxzujC6sNN.png" width="100px"></a>
+                <p>1GqP6HS35nbgSjoYaY6JWGhznxzujC6sNN</p>
+              </div>
+
+            </div> <!-- .col -->
+
+          </div>  <!-- .row -->
+
+        </div>  <!-- .tab-pane -->
+
+      </div> <!-- .tab-content -->
+
+    </div> <!-- .container -->
 
     <!-- Begin footer content -->
     <div class="footer">
       <div class="container">
         <div class="row">
-          <p class="col-xs-8 text-muted">&copy; Copyright 2014 - Glenn Rempe - <a href='http://callook.info/K6GDR' target='_blank'>K6GDR</a> - <a href='mailto:glenn@rempe.us'>glenn@rempe.us</a></p>
-          <p class="col-xs-4 text-muted">
 
-          <a href="https://github.com/grempe/dmr-watch" target='_blank'>GitHub</a>&nbsp;|&nbsp;<a href="https://github.com/grempe/dmr-watch/issues" target='_blank'>File a Bug</a>&nbsp;|&nbsp;<a href="http://www.dmr-marc.net/contact.html" target='_blank'>Add/Update DMR-MARC Data</a>
-          </p>
-        </div>
-      </div>
-    </div>
+          <div class="col-xs-8 text-muted">
+            &copy; Copyright 2014 - Glenn Rempe - <a href='http://callook.info/K6GDR' target='_blank'>K6GDR</a> - <a href='mailto:glenn@rempe.us'>glenn@rempe.us</a>
+          </div>
+
+          <div class="col-xs-4 text-muted">
+            <a href="https://github.com/grempe/dmr-watch" target='_blank'>GitHub</a>&nbsp;|&nbsp;<a href="https://github.com/grempe/dmr-watch/issues" target='_blank'>File a Bug</a>&nbsp;|&nbsp;<a href="http://www.dmr-marc.net/contact.html" target='_blank'>Add/Update DMR-MARC Data</a>
+          </div>
+
+        </div> <!-- .row -->
+      </div> <!-- .container -->
+    </div> <!-- .footer -->
 
     <script src="/components/jquery/dist/jquery.min.js" type="text/javascript"></script>
     <script src="/components/bootstrap/dist/js/bootstrap.min.js" type="text/javascript"></script>
-
     <script src="/components/moment/min/moment-with-locales.min.js" type="text/javascript"></script>
     <script src="/components/moment-timezone/builds/moment-timezone.min.js" type="text/javascript"></script>
     <script src="/js/phoenix.js" type="text/javascript"></script>
-    <script type="text/javascript" src="https://blockchain.info//Resources/wallet/pay-now-button.js"></script>
+    <script src="https://blockchain.info//Resources/wallet/pay-now-button.js" type="text/javascript"></script>
     <script src="/js/app.js" type="text/javascript"></script>
 
     <!-- GOOGLE MAPS -->
@@ -154,7 +157,7 @@
     <script type="text/javascript">
       function initialize() {
         var mapOptions = {
-          center: new google.maps.LatLng(37.688889 , -97.336111), // Wichita, KS
+          center: new google.maps.LatLng(37.688889 , -97.336111), // US Centerpoint : Near Wichita, KS
           zoom: 4,
           minZoom: 2,
           mapTypeId: 'terrain',
@@ -162,7 +165,7 @@
           scrollwheel: false
         };
 
-        // this.map is the key to allowing adding markers after the fact
+        // 'this.map' is the key to allowing adding markers after the fact
         // see : http://stackoverflow.com/questions/6335620/adding-markers-to-google-maps-v3-after-map-created
         this.map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
       }
@@ -171,7 +174,7 @@
       // Usage:
       // loc = new google.maps.LatLng(40.804562 , -73.364422);
       // addMarker(loc, title, icon, radius);
-
+      //
       var markers=[];
       function addMarker(location, title, icon, radius, linkedLocation) {
 
@@ -216,6 +219,7 @@
             circle.bindTo('center', marker, 'position');
           }
 
+          // Add polyline overlay between subscriber and repeater
           if (linkedLocation) {
             var transmitCoordinates = [
               location,
@@ -239,7 +243,6 @@
 
       }
     </script>
-    <!-- END GOOGLE MAPS -->
 
   </body>
 
