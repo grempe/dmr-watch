@@ -129,26 +129,6 @@ $( document ).ready(function() {
                           + "<span class='col-xs-2'>" + netwatchTxTemplateNetCol(message) + "</span>"
                           + "</div>"
                           )
-
-    if (message.peer_latitude && message.peer_longitude) {
-      var markertitle = message.peer_callsign || message.peer_id
-      addGoogleMapMarker(message.peer_latitude, message.peer_longitude, 'peer', markertitle, 75000);
-    }
-
-    if (message.radio_latitude && message.radio_longitude) {
-      if (message.dmr_marc_radio_callsign && message.dmr_marc_radio_name) {
-        var markertitle = message.dmr_marc_radio_callsign + " : " + message.dmr_marc_radio_name
-      } else if (message.radio_callsign && message.radio_name) {
-        var markertitle = message.radio_callsign + " : " + message.radio_name
-      } else if (message.radio_callsign) {
-        var markertitle = message.radio_callsign
-      } else {
-        var markertitle = message.radio_id
-      }
-
-      addGoogleMapMarker(message.radio_latitude, message.radio_longitude, 'radio', markertitle, 10000);
-    }
-
     return(msgContainer);
   }
 
@@ -205,6 +185,27 @@ $( document ).ready(function() {
     }
   }
 
+  function placeGeoMarkers(message) {
+    if (message.radio_latitude && message.radio_longitude) {
+      if (message.dmr_marc_radio_callsign && message.dmr_marc_radio_name) {
+        var radioMarkerTitle = message.dmr_marc_radio_callsign + " : " + message.dmr_marc_radio_name
+      } else if (message.radio_callsign && message.radio_name) {
+        var radioMarkerTitle = message.radio_callsign + " : " + message.radio_name
+      } else if (message.radio_callsign) {
+        var radioMarkerTitle = message.radio_callsign
+      } else {
+        var radioMarkerTitle = message.radio_id
+      }
+
+      addGoogleMapMarker(message.radio_latitude, message.radio_longitude, 'radio', radioMarkerTitle, 10000);
+    }
+
+    if (message.peer_latitude && message.peer_longitude) {
+      var peerMarkerTitle = message.peer_callsign || message.peer_id
+      addGoogleMapMarker(message.peer_latitude, message.peer_longitude, 'peer', peerMarkerTitle, 75000);
+    }
+  }
+
   // WEBSOCKETS
   socket.join("dmrwatch", "server", {}, function(chan){
 
@@ -216,13 +217,15 @@ $( document ).ready(function() {
     });
 
     chan.on("tx:in_progress", function(message){
-      console.log(message)
-      $("#tx-in-progress-placeholder").fadeOut()
+      console.log(message);
+      placeGeoMarkers(message);
+      $("#tx-in-progress-placeholder").fadeOut();
       $("#tx-in-progress").prepend(netwatchTxTemplate(message));
     });
 
     chan.on("tx:history", function(message){
-      console.log(message)
+      console.log(message);
+      placeGeoMarkers(message);
     });
 
     chan.on("time:utc_time", function(message){
