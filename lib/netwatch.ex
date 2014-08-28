@@ -346,31 +346,17 @@ defmodule Netwatch do
     String.strip(column)
   end
 
-  defp convert_to_float(string_num) do
-    case string_num do
-      "" ->
-        0.0
-      "Not avail." ->
-        0.0
-      "N/A" ->
-        0.0
-      _ ->
-        String.to_float(string_num)
-    end
-  end
+  defp convert_to_float(""), do: 0.0
+  defp convert_to_float("Not avail."), do: 0.0
+  defp convert_to_float("N/A"), do: 0.0
+  defp convert_to_float(num) when is_float(num), do: num
+  defp convert_to_float(num), do: String.to_float(num)
 
-  defp convert_to_integer(string_num) do
-    case string_num do
-      "" ->
-        0
-      "Not avail." ->
-        0
-      "N/A" ->
-        0
-      _ ->
-        String.to_integer(string_num)
-    end
-  end
+  defp convert_to_integer(""), do: 0
+  defp convert_to_integer("Not avail."), do: 0
+  defp convert_to_integer("N/A"), do: 0
+  defp convert_to_integer(num) when is_integer(num), do: num
+  defp convert_to_integer(num), do: String.to_integer(num)
 
   def parse_timestamp(ts) do
     # Sample : "03:48:38.471 Aug 5" -> "2014-08-05T03:48:38+0000"
