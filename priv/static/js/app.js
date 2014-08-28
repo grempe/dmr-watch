@@ -28,7 +28,7 @@ $( document ).ready(function() {
       str += "<span class='small " + label + "'>Packet Loss (%) : " + message.loss_percentage + "</span><br />"
     }
 
-    if (!message.radio_callsign){
+    if (!message.radio_callsign && !message.dmr_marc_radio_callsign){
       str += "<span class='small label label-warning'>No Radio Callsign</span><br />"
     }
 
@@ -132,7 +132,7 @@ $( document ).ready(function() {
 
     if (message.peer_latitude && message.peer_longitude) {
       var markertitle = message.peer_callsign || message.peer_id
-      addGoogleMapMarker(message.peer_latitude, message.peer_longitude, 'peer', markertitle);
+      addGoogleMapMarker(message.peer_latitude, message.peer_longitude, 'peer', markertitle, 75000);
     }
 
     if (message.radio_latitude && message.radio_longitude) {
@@ -146,20 +146,63 @@ $( document ).ready(function() {
         var markertitle = message.radio_id
       }
 
-      addGoogleMapMarker(message.radio_latitude, message.radio_longitude, 'radio', markertitle);
+      addGoogleMapMarker(message.radio_latitude, message.radio_longitude, 'radio', markertitle, 10000);
     }
 
     return(msgContainer);
   }
 
-  function addGoogleMapMarker(lat, lng, type, title){
+  function addGoogleMapMarker(lat, lng, type, title, radius){
     var loc = new google.maps.LatLng(lat, lng);
     if (type == 'peer') {
       var icon = '/static/images/radio-station-2.png'
     } else if (type == 'radio') {
       var icon = '/static/images/male-2.png'
+    } else if (type == 'observer') {
+      var icon = '/static/images/downloadicon.png'
     }
-    addMarker(loc, title, icon);
+    addMarker(loc, title, icon, radius);
+  }
+
+  function getGeoLocation() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(geoSuccess, geoError, {maximumAge: 600000});
+    } else {
+      window.myGeoError = "GEOLOCATION_NOT_SUPPORTED";
+      console.log("Geolocation is not supported by this browser.");
+    }
+  }
+
+  function geoSuccess(position) {
+    console.log("geoSuccess : latlong: " + position.coords.latitude + ", " + position.coords.longitude);
+    window.myGeoError = null;
+    window.myLatitude = position.coords.latitude;
+    window.myLongitude = position.coords.longitude;
+    addGoogleMapMarker(position.coords.latitude, position.coords.longitude, "observer", "Me.", 0 );
+  }
+
+  function geoError(error) {
+    window.myLatitude = null;
+    window.myLongitude = null;
+
+    switch(error.code) {
+      case error.PERMISSION_DENIED:
+        window.myGeoError = "PERMISSION_DENIED";
+        console.log("geoError : User denied the request for Geolocation.")
+        break;
+      case error.POSITION_UNAVAILABLE:
+        window.myGeoError = "POSITION_UNAVAILABLE";
+        console.log("geoError : Location information is unavailable.")
+        break;
+      case error.TIMEOUT:
+        window.myGeoError = "TIMEOUT";
+        console.log("geoError : The request to get user location timed out.")
+        break;
+      case error.UNKNOWN_ERROR:
+        window.myGeoError = "UNKNOWN_ERROR";
+        console.log("geoError : An unknown error occurred.")
+        break;
+    }
   }
 
   // WEBSOCKETS
@@ -167,6 +210,7 @@ $( document ).ready(function() {
 
     chan.on("join", function(message){
       // console.log(message)
+      getGeoLocation();
       $("#server-status").text("Connected. Waiting for DMR transmissions.");
       $("#server-status").fadeIn();
     });
@@ -195,6 +239,26 @@ $( document ).ready(function() {
       } else {
         $("#server-status").text("");
         $("#server-status").fadeOut();
+      }
+    });
+
+    // geo location points sent by other clients
+    // map these on our local map.
+    chan.on("geo:location", function(message){
+      console.log(message)
+      if (message.latitude && message.longitude && message.latitude != window.myLatitude && message.longitude != window.myLongitude) {
+      addGoogleMapMarker(message.latitude, message.longitude, "observer", "Web Observer", 0);
+      }
+    });
+
+    // geo location request from the server
+    // sends back geo:location:response which will be re-broadcast.
+    chan.on("geo:location:request", function(message){
+      console.log(message)
+      if (window.myGeoError && window.myGeoError != null) {
+        chan.send("geo:location:response:error", {"error": window.myGeoError});
+      } else if (window.myLatitude && window.myLongitude) {
+        chan.send("geo:location:response", {"latitude": window.myLatitude, "longitude": window.myLongitude});
       }
     });
 

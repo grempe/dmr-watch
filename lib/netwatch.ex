@@ -83,10 +83,6 @@ defmodule Netwatch do
       case HTTPoison.get(netwatch_url, @user_agent) do
         %HTTPoison.Response{status_code: 200, body: body} ->
           :ok = GenEvent.sync_notify(:dmrwatch_event_manager, {:server, :status, nil})
-
-  # FIXME : time should be sent by a standalone process. And is time off from my watch? norcal list is also off by 15 sec. Could time on cbridge server be off by 15 seconds?
-  # FIXME : :dmrwatch_event_manager should be a env var.
-          :ok = GenEvent.sync_notify(:dmrwatch_event_manager, {:server, :time, Timex.DateFormat.format!(Timex.Date.local, "{ISO}")})
           {:ok, extract_sections(body)}
         %HTTPoison.Response{status_code: ___, body: body} ->
           {:error, body}
@@ -99,12 +95,6 @@ defmodule Netwatch do
         :ok = GenEvent.sync_notify(:dmrwatch_event_manager, {:server, :status, "Server Error : The c-Bridge server is unavailable. Realtime data is paused."})
         exit(:normal)
     end
-  end
-
-  def fetch_every(frequency_in_ms \\ 1000) when is_integer(frequency_in_ms) do
-    :timer.sleep(frequency_in_ms)
-    fetch
-    fetch_every(frequency_in_ms)
   end
 
   defp netwatch_url do
@@ -247,7 +237,7 @@ defmodule Netwatch do
   defp lookup_dmr_marc_radio_data(%Netwatch{radio_id: radio_id} = nw_struct) when radio_id > 0 do
     case DmrMarcRadioCache.get(radio_id) do
       {:ok, :not_found} ->
-        Logger.warn "lookup_dmr_marc_radio_id : NOT FOUND : #{radio_id}"
+        #Logger.warn "lookup_dmr_marc_radio_id : NOT FOUND : #{radio_id}"
         nw_struct
       {:ok, data} ->
         new_nw_struct = %Netwatch{ nw_struct | dmr_marc_radio_callsign:      data.callsign,
@@ -287,17 +277,6 @@ defmodule Netwatch do
     end
   end
 
-  defp choose_dmr_marc_or_extracted_location(%Netwatch{} = nw_struct) do
-    case nw_struct do
-      %Netwatch{dmr_marc_radio_city: nil, dmr_marc_radio_state: nil, dmr_marc_radio_country: nil, radio_location: radio_location} ->
-        Logger.error "choose_dmr_marc_or_extracted_location : radio_location : #{radio_location}"
-        radio_location
-      %Netwatch{dmr_marc_radio_city: dmr_marc_radio_city, dmr_marc_radio_state: dmr_marc_radio_state, dmr_marc_radio_country: dmr_marc_radio_country} ->
-        Logger.debug "choose_dmr_marc_or_extracted_location : DMR-MARC location : #{dmr_marc_radio_city}, #{dmr_marc_radio_state}, #{dmr_marc_radio_country}"
-        "#{dmr_marc_radio_city}, #{dmr_marc_radio_state}, #{dmr_marc_radio_country}"
-    end
-  end
-
   defp geocode_location(:peer, %Netwatch{peer_location: ""} = nw_struct) do
     nw_struct
   end
@@ -323,6 +302,17 @@ defmodule Netwatch do
         {:ok, [fa, lat, lng]}
       _ ->
         {:error, []}
+    end
+  end
+
+  defp choose_dmr_marc_or_extracted_location(%Netwatch{} = nw_struct) do
+    case nw_struct do
+      %Netwatch{dmr_marc_radio_city: nil, dmr_marc_radio_state: nil, dmr_marc_radio_country: nil, radio_location: radio_location} ->
+        #Logger.debug "choose_dmr_marc_or_extracted_location : radio_location : #{radio_location}"
+        radio_location
+      %Netwatch{dmr_marc_radio_city: dmr_marc_radio_city, dmr_marc_radio_state: dmr_marc_radio_state, dmr_marc_radio_country: dmr_marc_radio_country} ->
+        #Logger.debug "choose_dmr_marc_or_extracted_location : DMR-MARC location : #{dmr_marc_radio_city}, #{dmr_marc_radio_state}, #{dmr_marc_radio_country}"
+        "#{dmr_marc_radio_city}, #{dmr_marc_radio_state}, #{dmr_marc_radio_country}"
     end
   end
 

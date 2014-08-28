@@ -148,6 +148,9 @@
     <!-- GOOGLE MAPS -->
     <script src="https://maps.googleapis.com/maps/api/js?libraries=visualization&key=AIzaSyA_5BmMgEsx9Mar1jXCj3NEIpsyPPsOoXk" type="text/javascript"></script>
 
+    <!-- crypto-js -->
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha1.js"></script>
+
     <script type="text/javascript">
       function initialize() {
         var mapOptions = {
@@ -167,12 +170,53 @@
 
       // Usage:
       // loc = new google.maps.LatLng(40.804562 , -73.364422);
-      // addMarker(loc);
-      function addMarker(location, title, icon) {
-        marker = new google.maps.Marker({ position: location,
-                                          map: this.map,
-                                          title: title,
-                                          icon: icon });
+      // addMarker(loc, title, icon, radius);
+
+      var markers=[];
+      function addMarker(location, title, icon, radius) {
+
+        // Don't add duplicate markers. Determine this
+        // by hashing the params to this function and storing
+        // in an associative array and checking each time we
+        // want to add a marker to see if its already added.
+        // Using a SHA1 hash is a bit of overkill but it does
+        // the job well.
+        var hash = CryptoJS.SHA1(location + title + icon + radius);
+        if(!markers[hash])
+        {
+          markers[hash]=true;
+
+          if (radius >= 75000) {
+            var fillColor = '#6666FF' // blue
+            var zIndex = 1
+          } else {
+            var fillColor = '#FFFF66' // yellow
+            var zIndex = 99
+          }
+
+          marker = new google.maps.Marker({ position: location,
+                                            map: this.map,
+                                            title: title,
+                                            animation: google.maps.Animation.DROP,
+                                            icon: icon,
+                                            zIndex: zIndex });
+
+          // Add circle overlay and bind to marker
+          if (radius > 0) {
+            var circle = new google.maps.Circle({
+              map: this.map,
+              radius: radius,    // metres
+              fillColor: fillColor,
+              fillOpacity: 0.2,
+              strokeColor: fillColor,
+              strokeWeight: 1,
+              zIndex: zIndex
+            });
+            circle.bindTo('center', marker, 'position');
+          }
+
+        }
+
       }
     </script>
     <!-- END GOOGLE MAPS -->

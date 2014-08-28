@@ -18,11 +18,10 @@ defmodule GeocoderCache do
   """
   def get(bucket \\ @default_bucket, key) do
     case Agent.get(bucket, &HashDict.get(&1, key)) do
-      {value, time} ->
-        #Logger.debug "GeocoderCache.get : cache hit : #{URI.decode(key)} : cached #{Timex.Time.elapsed(time, :secs)} seconds ago."
+      {value, _time} ->
         {:ok, value}
       _ ->
-        Logger.debug "GeocoderCache.get : cache miss : #{URI.decode(key)}"
+        #Logger.debug "GeocoderCache.get : cache miss : #{URI.decode(key)}"
         {:ok, :not_found}
     end
   end
@@ -60,21 +59,12 @@ defmodule GeocoderCache do
 
   def prune(bucket \\ @default_bucket, key) do
     case Agent.get(bucket, &HashDict.get(&1, key)) do
-      {value, time} ->
+      {_value, time} ->
         if Timex.Time.diff(Timex.Time.now, time, :hours) > @default_cache_time_in_hours do
           Logger.debug "GeocoderCache.prune : deleting old key : #{URI.decode(key)} : cached #{Timex.Time.elapsed(time, :secs)} seconds ago."
           delete(key)
         end
     end
-  end
-
-  @doc """
-  Prune periodically.
-  """
-  def prune_every(frequency_in_ms \\ 60_000) do
-    :ok = prune
-    :timer.sleep(frequency_in_ms)
-    prune_every(frequency_in_ms)
   end
 
   @doc """

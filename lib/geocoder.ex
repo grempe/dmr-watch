@@ -38,7 +38,7 @@ defmodule Geocoder do
         # FIXME : change to 2500 from 100 when ready
         case ExRated.check_rate("google-geocoder-api", 86_400_000, 500) do
           {:ok, _counter} ->
-            Logger.debug "Geocoder.get_or_cache_result_for_address : ext API call required : '#{address}'"
+            #Logger.debug "Geocoder.get_or_cache_result_for_address : ext API call required : '#{address}'"
             case http_client_get(address) do
               %{status_code: 200, body: body} ->
                 case parse_response_body(body) do

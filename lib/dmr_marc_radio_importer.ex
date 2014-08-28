@@ -17,12 +17,6 @@ defmodule DmrMarcRadioImporter do
 
   @user_agent [ {"User-agent", "Elixir DmrWatch"} ]
 
-  def fetch_every(frequency_in_ms \\ 3_600_000) when is_integer(frequency_in_ms) do
-    fetch
-    :timer.sleep(frequency_in_ms)
-    fetch_every(frequency_in_ms)
-  end
-
   def fetch do
     case ExRated.check_rate("dmr-marc-radio-importer", 3_600_000, 4) do
       {:ok, _counter} ->
@@ -108,7 +102,7 @@ defmodule DmrMarcRadioImporter do
   end
 
   defp convert_row_to_struct(row) do
-    Logger.error("convert_row_to_struct : bad row data : #{row}")
+    #Logger.error("convert_row_to_struct : bad row data : #{row}")
     nil
   end
 

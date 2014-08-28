@@ -1,5 +1,6 @@
 defmodule DmrWatch.DmrWatchChannel do
   use Phoenix.Channel
+  require Logger
 
   @doc """
   Authorize socket to subscribe and broadcast events on this channel & topic
@@ -20,8 +21,17 @@ defmodule DmrWatch.DmrWatchChannel do
     {:error, socket, :unauthorized}
   end
 
-  # def event(socket, "new:msg", message) do
-  #   broadcast socket, "new:msg", message
-  #   socket
-  # end
+  # CLIENT SENT EVENTS
+  # ##################
+
+  def event(socket, "geo:location:response", message) do
+    broadcast socket, "geo:location", message
+    socket
+  end
+
+  def event(socket, "geo:location:response:error", message) do
+    Logger.info "geo:location:response:error : #{message}"
+    socket
+  end
+
 end

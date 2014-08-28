@@ -69,15 +69,6 @@ defmodule DmrMarcRadioCache do
   end
 
   @doc """
-  Prune periodically.
-  """
-  def prune_every(frequency_in_ms \\ 60_000) do
-    :ok = prune
-    :timer.sleep(frequency_in_ms)
-    prune_every(frequency_in_ms)
-  end
-
-  @doc """
   Flush all `keys` in the `bucket` by iterating over each and deleting.
   """
   def flush() do

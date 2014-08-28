@@ -11,6 +11,11 @@ defmodule DmrWatchForwarder do
     {:ok, parent}
   end
 
+  def handle_event({:server, :geo_location_request, utc_time}, parent) do
+    Phoenix.Channel.broadcast("dmrwatch", "server", "geo:location:request", utc_time)
+    {:ok, parent}
+  end
+
   def handle_event(event, parent) do
     Phoenix.Channel.broadcast("dmrwatch", "server", "tx:in_progress", event)
     #send parent, event
