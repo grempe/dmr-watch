@@ -148,7 +148,7 @@
     <!-- GOOGLE MAPS -->
     <script src="https://maps.googleapis.com/maps/api/js?libraries=visualization&key=AIzaSyA_5BmMgEsx9Mar1jXCj3NEIpsyPPsOoXk" type="text/javascript"></script>
 
-    <!-- crypto-js -->
+    <!-- crypto-js : https://code.google.com/p/crypto-js/ -->
     <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha1.js"></script>
 
     <script type="text/javascript">
