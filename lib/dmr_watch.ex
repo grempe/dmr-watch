@@ -12,7 +12,7 @@ defmodule DmrWatch do
     {:ok, _} = :timer.apply_interval(1_000, Netwatch, :fetch, [])
     {:ok, _} = :timer.apply_interval(60_000, GeocoderCache, :prune, [])
     {:ok, _} = :timer.apply_interval(60_000, DmrMarcRadioCache, :prune, [])
-    {:ok, _} = :timer.apply_interval(60_000, DmrMarcRadioImporter, :fetch, [])
+    {:ok, _} = :timer.apply_interval(360_000, DmrMarcRadioImporter, :fetch, [])
 
     children = [
       # Define workers and child supervisors to be supervised
