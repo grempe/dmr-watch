@@ -107,7 +107,7 @@ defmodule DmrMarcRadioImporter do
   end
 
   defp cache_each_data_row(%DmrMarcRadio{} = dmr_marc_struct) do
-    :ok = DmrMarcRadioCache.put(dmr_marc_struct.radio_id, dmr_marc_struct)
+    :ok = Cache.put({:dmr_marc_radio, dmr_marc_struct.radio_id}, dmr_marc_struct)
     dmr_marc_struct
   end
 

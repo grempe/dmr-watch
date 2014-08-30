@@ -32,7 +32,7 @@ defmodule Geocoder do
   end
 
   defp get_or_cache_result_for_address(address) do
-    case GeocoderCache.get(address) do
+    case Cache.get({:geocoder, address}) do
       {:ok, :not_found} ->
         # Rate Limit : 2500 req per 24 hours (86_400_000ms) max
         # FIXME : change to 2500 from 100 when ready
@@ -43,19 +43,19 @@ defmodule Geocoder do
               %{status_code: 200, body: body} ->
                 case parse_response_body(body) do
                   {:ok, result} ->
-                    :ok = GeocoderCache.put(address, result)
+                    :ok = Cache.put({:geocoder, address}, result)
                     {:ok, result}
                   {:error, reason} ->
                     Logger.error "Geocoder.get_or_cache_result_for_address : #{address} : #{reason}"
                     # cache the empty result so we don't query the same thing every second.
-                    :ok = GeocoderCache.put(address, [])
+                    :ok = Cache.put({:geocoder, address}, [])
                     {:error, reason}
                 end
               %{status_code: ___, body: body} ->
                 { :error, body }
             end
           {:fail, limit} ->
-            Logger.info "Geocoder.lookup : API call : rate limit of #{limit} reached : '#{address}'"
+            #Logger.info "Geocoder.lookup : API call : rate limit of #{limit} reached : '#{address}'"
             {:rate_limited, []}
         end
       {:ok, cached_result} ->
