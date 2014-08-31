@@ -18,8 +18,7 @@ defmodule Cache do
   """
   def get(bucket \\ @default_bucket, {namespace, key}) when is_atom(namespace) do
     case Agent.get(bucket, &HashDict.get(&1, key)) do
-      {value, time} ->
-        #Logger.debug "Cache.get : cache hit : #{{namespace, key}} : cached #{Timex.Time.elapsed(time, :secs)} seconds ago."
+      {value, _time} ->
         {:ok, value}
       _ ->
         #Logger.debug "Cache.get : cache miss : #{{namespace, key}}"
@@ -60,7 +59,7 @@ defmodule Cache do
 
   def prune(bucket \\ @default_bucket, {namespace, key}) when is_atom(namespace) do
     case Agent.get(bucket, &HashDict.get(&1, {namespace, key})) do
-      {value, time} ->
+      {_value, time} ->
         if Timex.Time.diff(Timex.Time.now, time, :secs) > @default_cache_time_in_seconds do
           Logger.debug "Cache.prune : deleting old key : #{{namespace, key}} : cached #{Timex.Time.elapsed(time, :secs)} seconds ago."
           delete({namespace, key})

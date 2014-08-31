@@ -7,11 +7,11 @@ defmodule DmrWatch do
     import Supervisor.Spec, warn: false
 
     # run some processes every interval
-    {:ok, _} = :timer.apply_interval(1_000, Tick, :broadcast_time, [])
-    {:ok, _} = :timer.apply_interval(1_000, Netwatch, :fetch, [])
-    {:ok, _} = :timer.apply_interval(10_000, Tick, :request_geo_location, [])
-    {:ok, _} = :timer.apply_interval(60_000, Cache, :prune, [])
-    {:ok, _} = :timer.apply_interval(360_000, DmrMarcRadioImporter, :fetch, [])
+    {:ok, _} = :timer.apply_interval(1_000, Tick, :broadcast_time, [])          # 1 second
+    {:ok, _} = :timer.apply_interval(1_000, Netwatch, :fetch, [])               # 1 second
+    {:ok, _} = :timer.apply_interval(10_000, Tick, :request_geo_location, [])   # 10 seconds
+    {:ok, _} = :timer.apply_interval(600_000, Cache, :prune, [])                # 600_000 = 10 min
+    {:ok, _} = :timer.apply_interval(900_000, DmrMarcRadioImporter, :fetch, []) # 900_000 = 15 min
 
     children = [
       # Define workers and child supervisors to be supervised
