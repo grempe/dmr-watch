@@ -20,7 +20,7 @@
     <link href="/css/app.css" rel="stylesheet">
 
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="/static/js/ie10-viewport-bug-workaround.js"></script>
+    <script src="/js/ie10-viewport-bug-workaround.js"></script>
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -76,7 +76,7 @@
 
           <div class="row">
             <div class="col-xs-9">
-              <p>I hope you are enjoying using this site. It is the result of many hours of effort. DMR Watch takes significant time and expense to maintain and I depend on your donations to keep it running. Server hosting and bandwidth costs are not trivial and the bill comes every month. Please consider an ongoing recurring donation using Gittip, however even a one time donation is very much appreciated.</p>
+              <p>I hope you are enjoying using this site. It is the result of many hours of effort. DMR Watch takes significant time and expense to maintain and I depend on your donations to keep it running. Server hosting and bandwidth costs are not trivial and the bill comes every month. Please consider an ongoing recurring donation using Gratipay, however even a one-time donation is very much appreciated.</p>
 
               <p>Thank you.</p>
               <p>Glenn Rempe (K6GDR)</p>
@@ -89,8 +89,8 @@
           <div class="row">
 
             <div class="col-xs-3">
-              <p class="h4">Gittip:</p>
-              <script data-gittip-username="grempe" src="//gttp.co/v1.js"></script>
+              <p class="h4">Gratipay:</p>
+              <script data-gratipay-username="grempe" data-gratipay-widget="button" src="//gttp.co/v1.js"></script>
             </div> <!-- .col -->
 
             <div class="col-xs-3">
@@ -109,7 +109,7 @@
 
               <div>
                 <a href="bitcoin:1GqP6HS35nbgSjoYaY6JWGhznxzujC6sNN?amount=0.5&label=Glenn%20Rempe">
-                <img src="/static/images/bitcoin-1GqP6HS35nbgSjoYaY6JWGhznxzujC6sNN.png" width="100px"></a>
+                <img src="/images/bitcoin-1GqP6HS35nbgSjoYaY6JWGhznxzujC6sNN.png" width="100px"></a>
                 <p>1GqP6HS35nbgSjoYaY6JWGhznxzujC6sNN</p>
               </div>
 

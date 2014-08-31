@@ -142,11 +142,11 @@ $( document ).ready(function() {
     }
 
     if (type == 'peer') {
-      var icon = '/static/images/radio-station-2.png'
+      var icon = '/images/radio-station-2.png'
     } else if (type == 'radio') {
-      var icon = '/static/images/male-2.png'
+      var icon = '/images/male-2.png'
     } else if (type == 'observer') {
-      var icon = '/static/images/downloadicon.png'
+      var icon = '/images/downloadicon.png'
     }
     addMarker(location, title, icon, radius, linkedLocation);
   }
