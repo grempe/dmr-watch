@@ -91,7 +91,7 @@ defmodule Netwatch do
       error in [HTTPoison.HTTPError, HTTPoison.Error] ->
         # Exit cleanly so we don't kill the Phoenix supervisor.
         # Periodic errors retrieving data from external CBridge are to be expected.
-        Logger.error "Netwatch.fetch : Error retrieving data from CBridge. Try again next time. : #{error.message}"
+        Logger.error "Netwatch.fetch : Error retrieving data from c-Bridge. Try again next time. : #{error.message}"
         :ok = GenEvent.sync_notify(:dmrwatch_event_manager, {:server, :status, "Server Error : The c-Bridge server is unavailable. Realtime data is paused."})
         exit(:normal)
     end
