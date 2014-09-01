@@ -14,10 +14,10 @@ defmodule Cache do
   end
 
   @doc """
-  Gets a value from the `bucket` by `key`
+  Gets a value from the `bucket` by `key` where `key` must be a `{namespace, key}` tuple.
   """
   def get(bucket \\ @default_bucket, {namespace, key}) when is_atom(namespace) do
-    case Agent.get(bucket, &HashDict.get(&1, key)) do
+    case Agent.get(bucket, &HashDict.get(&1, {namespace, key})) do
       {value, _time} ->
         {:ok, value}
       _ ->
