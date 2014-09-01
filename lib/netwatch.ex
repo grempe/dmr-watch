@@ -91,7 +91,7 @@ defmodule Netwatch do
       error in [HTTPoison.HTTPError, HTTPoison.Error] ->
         # Exit cleanly so we don't kill the Phoenix supervisor.
         # Periodic errors retrieving data from external CBridge are to be expected.
-        Logger.error "Netwatch.fetch : Error retrieving data from CBridge. Try again next time. : #{error.message}"
+        Logger.error "Netwatch.fetch : Error retrieving data from c-Bridge. Try again next time. : #{error.message}"
         :ok = GenEvent.sync_notify(:dmrwatch_event_manager, {:server, :status, "Server Error : The c-Bridge server is unavailable. Realtime data is paused."})
         exit(:normal)
     end
@@ -123,7 +123,7 @@ defmodule Netwatch do
     |> Enum.filter(fn(nw_struct) ->
                      case nw_struct do
                        %Netwatch{time_peer_radio_hash_id: time_peer_radio_hash_id} ->
-                         NetwatchRegistry.new?(time_peer_radio_hash_id)
+                         Cache.new?({:netwatch, time_peer_radio_hash_id})
                        _ ->
                          false
                      end
@@ -235,7 +235,7 @@ defmodule Netwatch do
   end
 
   defp lookup_dmr_marc_radio_data(%Netwatch{radio_id: radio_id} = nw_struct) when radio_id > 0 do
-    case DmrMarcRadioCache.get(radio_id) do
+    case Cache.get({:dmr_marc_radio, radio_id}) do
       {:ok, :not_found} ->
         #Logger.warn "lookup_dmr_marc_radio_id : NOT FOUND : #{radio_id}"
         nw_struct
@@ -329,7 +329,7 @@ defmodule Netwatch do
   end
 
   defp register_time_peer_radio_hash_id(%Netwatch{time_peer_radio_hash_id: time_peer_radio_hash_id} = nw_struct) do
-    NetwatchRegistry.put(time_peer_radio_hash_id, 1)
+    Cache.put({:netwatch, time_peer_radio_hash_id}, 1)
     nw_struct
   end
 

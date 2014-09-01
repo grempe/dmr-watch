@@ -7,6 +7,7 @@ defmodule DmrWatch.Views do
 
       # This block is expanded within all views for aliases, imports, etc
       import DmrWatch.I18n
+      import DmrWatch.Router.Helpers
     end
   end
 

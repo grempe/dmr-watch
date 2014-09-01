@@ -101,13 +101,14 @@ defmodule DmrMarcRadioImporter do
     dmr_struct
   end
 
+# FIXME : should not need this function head.  Something is wrong.
   defp convert_row_to_struct(row) do
     #Logger.error("convert_row_to_struct : bad row data : #{row}")
     nil
   end
 
   defp cache_each_data_row(%DmrMarcRadio{} = dmr_marc_struct) do
-    :ok = DmrMarcRadioCache.put(dmr_marc_struct.radio_id, dmr_marc_struct)
+    :ok = Cache.put({:dmr_marc_radio, dmr_marc_struct.radio_id}, dmr_marc_struct)
     dmr_marc_struct
   end
 

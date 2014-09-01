@@ -7,20 +7,17 @@ defmodule DmrWatch do
     import Supervisor.Spec, warn: false
 
     # run some processes every interval
-    {:ok, _} = :timer.apply_interval(1_000, Tick, :broadcast_time, [])
-    {:ok, _} = :timer.apply_interval(10_000, Tick, :request_geo_location, [])
-    {:ok, _} = :timer.apply_interval(1_000, Netwatch, :fetch, [])
-    {:ok, _} = :timer.apply_interval(60_000, GeocoderCache, :prune, [])
-    {:ok, _} = :timer.apply_interval(60_000, DmrMarcRadioCache, :prune, [])
-    {:ok, _} = :timer.apply_interval(360_000, DmrMarcRadioImporter, :fetch, [])
+    {:ok, _} = :timer.apply_interval(1_000, Tick, :broadcast_time, [])          # 1 second
+    {:ok, _} = :timer.apply_interval(1_000, Netwatch, :fetch, [])               # 1 second
+    {:ok, _} = :timer.apply_interval(10_000, Tick, :request_geo_location, [])   # 10 seconds
+    {:ok, _} = :timer.apply_interval(600_000, Cache, :prune, [])                # 600_000 = 10 min
+    {:ok, _} = :timer.apply_interval(900_000, DmrMarcRadioImporter, :fetch, []) # 900_000 = 15 min
 
     children = [
       # Define workers and child supervisors to be supervised
       # worker(TestApp.Worker, [arg1, arg2, arg3])]
       worker(GenEvent, [[name: :dmrwatch_event_manager]]),
-      worker(GeocoderCache, [], id: :geocoder_cache),
-      worker(DmrMarcRadioCache, [], id: :dmr_marc_radio_cache),
-      worker(NetwatchRegistry, [], id: :netwatch_registry),
+      worker(Cache, [], id: :dmrwatch_cache),
     ]
 
     opts = [strategy: :one_for_one, max_restarts: 1000, name: DmrWatch.Supervisor]
