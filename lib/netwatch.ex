@@ -111,15 +111,15 @@ defmodule Netwatch do
 
   defp extract_records(section) do
     String.split(section, "\t")
-    |> Enum.map(&extract_columns(&1))
-    |> Enum.map(&convert_to_struct(&1))
+    |> Parallel.pmap(&extract_columns(&1))
+    |> Parallel.pmap(&convert_to_struct(&1))
     |> Enum.filter(fn(nw_struct) -> if nw_struct, do: true, else: false end )  # filter nil nw_struct
-    |> Enum.map(&split_peer_alias(&1))
-    |> Enum.map(&split_radio_alias(&1))
-    |> Enum.map(&lookup_dmr_marc_radio_data(&1))
-    |> Enum.map(&geocode_location(:radio, &1))
-    |> Enum.map(&geocode_location(:peer, &1))
-    |> Enum.map(&generate_struct_hash_id(&1))
+    |> Parallel.pmap(&split_peer_alias(&1))
+    |> Parallel.pmap(&split_radio_alias(&1))
+    |> Parallel.pmap(&lookup_dmr_marc_radio_data(&1))
+    |> Parallel.pmap(&geocode_location(:radio, &1))
+    |> Parallel.pmap(&geocode_location(:peer, &1))
+    |> Parallel.pmap(&generate_struct_hash_id(&1))
     |> Enum.filter(fn(nw_struct) ->
                      case nw_struct do
                        %Netwatch{time_peer_radio_hash_id: time_peer_radio_hash_id} ->
@@ -128,7 +128,7 @@ defmodule Netwatch do
                          false
                      end
                    end)
-    |> Enum.map(&register_time_peer_radio_hash_id(&1))
+    |> Parallel.pmap(&register_time_peer_radio_hash_id(&1))
   end
 
   defp struct_is_valid?(%Netwatch{radio_id: radio_id, peer_id: peer_id}) when radio_id > 0 and peer_id > 0 do

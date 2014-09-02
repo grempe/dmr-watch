@@ -16,7 +16,9 @@ defmodule Geocoder do
 
   @user_agent [ {"User-agent", "Elixir DmrWatch"} ]
   # FIXME : Put in config or env var.
-  @api_key "AIzaSyA_5BmMgEsx9Mar1jXCj3NEIpsyPPsOoXk"
+  # See : https://console.developers.google.com/project?authuser=0
+  @api_key "AIzaSyA_5BmMgEsx9Mar1jXCj3NEIpsyPPsOoXk"  # dmr-watch-dev
+#  @api_key "AIzaSyCuJYwNsUbbREjP82HlT3wS6pAMIUsz24E"  # dmr-watch-prod
 
   def lookup(""), do: { :error, "Empty address string." }
   def lookup(nil), do: { :error, "Nil address string." }
