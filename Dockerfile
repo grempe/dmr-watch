@@ -10,7 +10,7 @@
 #  docker run --rm -t -i --name dmr_watch -P  grempe/dmr-watch /sbin/my_init -- bash -l
 
 FROM phusion/baseimage:0.9.13
-MAINTAINER Glenn Rempe
+MAINTAINER Glenn Rempe <glenn@rempe.us>
 
 # Set correct environment variables.
 #ENV HOME /root
@@ -41,7 +41,7 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 # is updated with the current date. It will force refresh of all
 # of the base images and things like `apt-get update` won't be using
 # old cached versions when the Dockerfile is built.
-ENV REFRESHED_AT 2014-09-09
+ENV REFRESHED_AT 2014-09-10
 
 # Update repos
 RUN apt-get -q update
@@ -67,7 +67,7 @@ RUN apt-get install -y erlang=1:17.1
 
 # Download and Install Specific Version of Elixir
 WORKDIR /elixir
-RUN wget -q https://github.com/elixir-lang/elixir/releases/download/v1.0.0-rc2/Precompiled.zip
+RUN wget -q https://github.com/elixir-lang/elixir/releases/download/v1.0.0/Precompiled.zip
 RUN unzip Precompiled.zip
 RUN rm -f Precompiled.zip
 RUN ln -s /elixir/bin/elixirc /usr/local/bin/elixirc
@@ -90,8 +90,12 @@ ADD test/    /home/elixir/app/test/
 ADD web/     /home/elixir/app/web/
 ADD mix.exs  /home/elixir/app/mix.exs
 ADD mix.lock /home/elixir/app/mix.lock
+RUN mkdir -p /home/elixir/app/_build
+RUN mkdir -p /home/elixir/app/deps
 RUN chown -R elixir:elixir /home/elixir/app
 
+ENV MIX_ENV prod
+ENV PORT 4000
 WORKDIR /home/elixir/app
 RUN /sbin/setuser elixir mix deps.clean --all
 RUN /sbin/setuser elixir mix clean --all
@@ -106,8 +110,6 @@ ADD docker/phoenix.sh /etc/service/phoenix/run
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-ENV MIX_ENV prod
-ENV PORT 4000
 EXPOSE 4000
 
 # Use baseimage-docker's init system.
