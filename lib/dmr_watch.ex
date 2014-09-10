@@ -15,7 +15,7 @@ defmodule DmrWatch do
 
     children = [
       # Define workers and child supervisors to be supervised
-      # worker(TestApp.Worker, [arg1, arg2, arg3])]
+      # worker(TestApp.Worker, [arg1, arg2, arg3])
       worker(GenEvent, [[name: :dmrwatch_event_manager]]),
       worker(Cache, [], id: :dmrwatch_cache),
     ]

@@ -217,34 +217,38 @@ $( document ).ready(function() {
   socket.join("dmrwatch", "server", {}, function(chan){
 
     chan.on("join", function(message){
-      // console.log(message)
+      // console.log(message);
       getGeoLocation();
       $("#server-status").text("Connected. Waiting for DMR transmissions.");
       $("#server-status").fadeIn();
     });
 
     chan.on("tx:in_progress", function(message){
-      console.log(message);
-      placeGeoMarkers(message);
+      msg = message["message"];
+      console.log(msg);
+      placeGeoMarkers(msg);
       $("#tx-in-progress-placeholder").fadeOut();
-      $("#tx-in-progress").prepend(netwatchTxTemplate(message));
+      $("#tx-in-progress").prepend(netwatchTxTemplate(msg));
     });
 
     chan.on("tx:history", function(message){
-      console.log(message);
-      placeGeoMarkers(message);
+      msg = message["message"];
+      console.log(msg);
+      placeGeoMarkers(msg);
     });
 
     chan.on("time:utc_time", function(message){
-      var server_utc_time = moment(message)
-      //console.log(message)
+      msg = message["utc_time"];
+      var server_utc_time = moment(msg);
+      //console.log(msg);
       $("#server-time").text(server_utc_time.format("MM/D/YYYY HH:mm:ss Z"));
     });
 
     chan.on("status:message", function(message){
-      //console.log(message)
-      if (message) {
-        $("#server-status").text(message);
+      msg = message["message"];
+      //console.log(msg);
+      if (msg) {
+        $("#server-status").text(msg);
         $("#server-status").fadeIn();
       } else {
         $("#server-status").text("");
@@ -255,9 +259,9 @@ $( document ).ready(function() {
     // geo location points sent by other clients
     // map these on our local map.
     chan.on("geo:location", function(message){
-      console.log(message)
+      console.log(message);
       if (message.latitude && message.longitude && message.latitude != window.myLatitude && message.longitude != window.myLongitude) {
-      addGoogleMapMarker(message.latitude, message.longitude, "observer", "Web Observer", 0);
+        addGoogleMapMarker(message.latitude, message.longitude, "observer", "Web Observer", 0);
       }
     });
 
